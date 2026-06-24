@@ -1,0 +1,772 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Puckilander">
+<meta name="theme-color" content="#FF6EC7">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
+<title>Puckilander</title>
+
+<style>
+:root {
+  --rose:   #FF6EC7;
+  --violet: #C77DFF;
+  --deep:   #3D0040;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box; margin: 0; padding: 0;
+  -webkit-tap-highlight-color: transparent; user-select: none;
+}
+html, body {
+  height: 100%; overflow: hidden;
+  font-family: Georgia, 'Times New Roman', serif;
+  touch-action: none;
+}
+
+/* ── Aurora sky ─────────────────────────────────── */
+.sky {
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 55% at 12% 28%,  rgba(255,175,225,.90) 0%, transparent 58%),
+    radial-gradient(ellipse 80% 58% at 88% 10%,  rgba(175,95,255,.80)  0%, transparent 54%),
+    radial-gradient(ellipse 58% 72% at 50% 98%,  rgba(240,125,210,.85) 0%, transparent 52%),
+    radial-gradient(ellipse 92% 38% at 58% 52%,  rgba(195,145,255,.55) 0%, transparent 58%),
+    radial-gradient(ellipse 42% 62% at 22% 78%,  rgba(255,155,215,.68) 0%, transparent 50%),
+    radial-gradient(ellipse 52% 44% at 82% 72%,  rgba(155,75,238,.52)  0%, transparent 50%),
+    linear-gradient(148deg, rgba(248,196,232,.72) 0%, rgba(210,138,246,.72) 25%, rgba(158,88,224,.72) 50%, rgba(212,104,196,.72) 72%, rgba(240,152,216,.72) 100%);
+  animation: sky-breath 14s ease-in-out infinite alternate;
+}
+@keyframes sky-breath {
+  from { filter: brightness(1)    saturate(1)    hue-rotate(0deg); }
+  to   { filter: brightness(1.07) saturate(1.14) hue-rotate(11deg); }
+}
+
+/* ── Clouds ─────────────────────────────────────── */
+.clouds { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
+.cloud  { position: absolute; background: rgba(255,255,255,.20); filter: blur(42px); }
+.ca { width:390px; height:210px; top:-1%;   left:-8%;  border-radius:55% 65% 42% 72%/62% 42% 72% 52%; animation:da 22s -4s  ease-in-out infinite; }
+.cb { width:470px; height:250px; top:50%;   right:-16%;border-radius:62% 42% 62% 42%/42% 62% 42% 62%; animation:db 28s -12s ease-in-out infinite; }
+.cc { width:265px; height:155px; top:14%;   right:10%; border-radius:72% 32% 62% 52%/52% 62% 42% 72%; animation:da 18s -8s  ease-in-out infinite; }
+.cd { width:415px; height:218px; bottom:-1%;left:6%;   border-radius:42% 72% 52% 62%/72% 52% 62% 42%; animation:db 24s -18s ease-in-out infinite; }
+.ce { width:208px; height:125px; top:64%;   left:26%;  border-radius:62% 52% 42% 72%/52% 42% 62% 52%; animation:da 20s -6s  ease-in-out infinite; }
+.cglow { width:500px; height:300px; top:50%; left:50%; transform:translate(-50%,-50%); border-radius:50%; background:radial-gradient(ellipse, rgba(255,200,240,.18) 0%, transparent 70%); filter:blur(65px); animation:gp 9s ease-in-out infinite alternate; }
+@keyframes da { 0%,100%{transform:translate(0,0)} 22%{transform:translate(19px,-17px)} 46%{transform:translate(9px,8px)} 72%{transform:translate(-15px,-11px)} }
+@keyframes db { 0%,100%{transform:translate(0,0)} 26%{transform:translate(-22px,13px)} 52%{transform:translate(11px,-9px)} 78%{transform:translate(16px,11px)} }
+@keyframes gp { from{transform:translate(-50%,-50%) scale(1);opacity:.6} to{transform:translate(-50%,-50%) scale(1.18);opacity:1} }
+
+/* ── Sparkles ────────────────────────────────────── */
+.sparkles { position:fixed; inset:0; pointer-events:none; z-index:2; overflow:hidden; }
+@keyframes rise {
+  0%   { opacity:0; transform:translateY(0)    scale(0)  rotate(0deg); }
+  12%  { opacity:1; transform:translateY(-9px) scale(1)  rotate(15deg); }
+  88%  { opacity:.5; transform:translateY(-72px) scale(.5) rotate(48deg); }
+  100% { opacity:0; transform:translateY(-92px) scale(0) rotate(64deg); }
+}
+
+/* ── Header ──────────────────────────────────────── */
+.header {
+  position:fixed; top:0; left:0; right:0; z-index:30;
+  padding: calc(env(safe-area-inset-top,0px) + 22px) 24px 16px;
+  text-align:center;
+  background:linear-gradient(to bottom, rgba(150,45,190,.38) 0%, transparent 100%);
+}
+.header-name {
+  font-size:clamp(1.55rem,6.5vw,2rem); color:#fff; letter-spacing:.1em;
+  text-shadow: 0 0 22px rgba(255,110,199,.95), 0 0 52px rgba(200,100,255,.60), 0 2px 9px rgba(80,0,100,.50);
+}
+.header-date {
+  font-size:.72rem; color:rgba(255,255,255,.75); letter-spacing:.22em;
+  text-transform:uppercase; font-family:'Trebuchet MS',sans-serif; margin-top:5px;
+}
+
+/* ── Scene ────────────────────────────────────────── */
+.scene {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10;
+  padding-top: 90px;
+  padding-bottom: 60px;
+  overflow: hidden;
+}
+
+/* ── Cards stage + slots ──────────────────────────── */
+#tilt-wrap {
+  position: relative;
+  width: 305px; height: 415px;
+  transform-style: preserve-3d;
+}
+#cardsStage {
+  position: relative;
+  width: 305px;
+  height: 415px;
+}
+
+.card-slot {
+  position: absolute;
+  width: 305px; height: 415px;
+  top: 0;
+}
+#slotLeft   { left: -330px; }
+#slotCenter { left: 0; }
+#slotRight  { left: 330px; }
+
+/* Entry animation — spring from below */
+@keyframes card-rise {
+  0%   { transform: translateY(220px) scale(0.82); opacity: 0; }
+  65%  { transform: translateY(-14px) scale(1.03); opacity: 1; }
+  82%  { transform: translateY(5px)   scale(0.99); }
+  100% { transform: translateY(0)     scale(1);    opacity: 1; }
+}
+.card-slot.entering {
+  animation: card-rise 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Spinning rainbow border */
+.sparkle-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 32px;
+  background: conic-gradient(
+    from 0deg,
+    #FF6EC7, #FFB8EA, #C77DFF, #E8A0FF, #FF6EC7, #FFB8EA, #C77DFF, #FF6EC7
+  );
+  z-index: 0;
+  box-shadow:
+    0 0 18px rgba(255,110,199,.65),
+    0 0 42px rgba(200,120,255,.40),
+    0 0 70px rgba(200,120,255,.18);
+  transition: opacity 0.5s ease;
+}
+
+/* Flip perspective shell */
+.flip-shell {
+  position: absolute; inset: 0;
+  z-index: 1;
+  perspective: 1100px;
+}
+
+/* Flipper — rotates Y on reveal */
+.flipper {
+  width: 100%; height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.85s cubic-bezier(0.42, 0, 0.18, 1.1);
+  border-radius: 28px;
+  cursor: pointer;
+}
+.flipper.flipped {
+  transform: rotateY(180deg);
+  cursor: default;
+}
+.flipper:not(.flipped):active { transform: scale(0.96) translateY(2px); }
+
+/* Bob — all center cards float, paused while navigating */
+.bob-wrap { width: 100%; height: 100%; border-radius: 28px; transform-style: preserve-3d; }
+#slotCenter .bob-wrap { animation: bob 4s ease-in-out infinite; }
+#cardsStage.navigating .bob-wrap,
+#cardsStage.navigating .front-icon,
+#cardsStage.navigating .shimmer-bar::after { animation-play-state: paused !important; }
+@keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-11px)} }
+
+/* Card faces */
+.face {
+  position: absolute; inset: 0;
+  border-radius: 28px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+}
+
+/* ── Front face (unrevealed) ──────────────────────── */
+.front {
+  background: linear-gradient(
+    148deg,
+    rgba(248,225,255,.97) 0%,
+    rgba(255,205,243,.93) 50%,
+    rgba(235,200,255,.95) 100%
+  );
+  border: 1.5px solid rgba(255,255,255,.90);
+  box-shadow:
+    0 20px 52px rgba(155,55,180,.28),
+    0 4px 14px rgba(120,40,160,.14),
+    inset 0 1.5px 0 rgba(255,255,255,1);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px;
+}
+
+/* Shimmer sweep — diagonal white band */
+.shimmer-bar {
+  position: absolute; inset: 0;
+  border-radius: 28px;
+  pointer-events: none; z-index: 5; overflow: hidden;
+}
+.shimmer-bar::after {
+  content: '';
+  position: absolute;
+  top: -100%; left: -70%;
+  width: 45%; height: 300%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255,255,255,.06) 32%,
+    rgba(255,255,255,.54) 50%,
+    rgba(255,255,255,.06) 68%,
+    transparent 100%
+  );
+  animation: shimmer-sweep 4s ease-in-out infinite;
+}
+@keyframes shimmer-sweep {
+  0%, 10%   { transform: translateX(0);    opacity: 0; }
+  14%        { opacity: 1; }
+  58%        { transform: translateX(500%); opacity: 1; }
+  65%, 100%  { transform: translateX(500%); opacity: 0; }
+}
+
+.front-label {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: .68rem; letter-spacing: .28em; text-transform: uppercase;
+  color: rgba(138,50,118,.50);
+}
+.front-icon {
+  font-size: 3.6rem; line-height: 1;
+  filter: drop-shadow(0 0 16px rgba(200,100,220,.55));
+  animation: icon-pulse 3s ease-in-out infinite;
+}
+@keyframes icon-pulse {
+  0%,100%{ transform: scale(1) rotate(-4deg); }
+  50%    { transform: scale(1.15) rotate(4deg); }
+}
+.front-hint {
+  font-size: .74rem; color: rgba(138,50,118,.40);
+  font-style: italic; letter-spacing: .04em;
+}
+
+/* ── Back face (revealed content) ─────────────────── */
+.back {
+  transform: rotateY(180deg);
+  background: linear-gradient(148deg, rgba(255,253,255,.99) 0%, rgba(255,225,252,.93) 100%);
+  border: 1.5px solid rgba(255,255,255,.90);
+  box-shadow:
+    0 20px 52px rgba(155,55,180,.28),
+    0 4px 14px rgba(120,40,160,.14),
+    inset 0 1.5px 0 rgba(255,255,255,1);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 22px 20px 20px;
+  gap: 9px;
+}
+.back-day {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: .66rem; letter-spacing: .28em; text-transform: uppercase;
+  color: rgba(138,50,118,.52);
+}
+.back-emoji {
+  font-size: 3.4rem; line-height: 1;
+  animation: emoji-life 3s ease-in-out infinite;
+}
+@keyframes emoji-life {
+  0%,100%{ transform: scale(1) rotate(0deg); }
+  40%    { transform: scale(1.14) rotate(6deg); }
+  70%    { transform: scale(.93) rotate(-4deg); }
+}
+.back-title {
+  font-size: 1rem; color: var(--deep);
+  text-align: center; font-style: italic; line-height: 1.35;
+}
+.back-gif {
+  width: 88px; height: 110px;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+  flex-shrink: 0;
+}
+.back-gif.loaded { opacity: 1; }
+.back-msg {
+  font-size: .74rem; color: #4A1855;
+  line-height: 1.58; text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+
+/* ── Day counter ─────────────────────────────────── */
+.day-counter {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom,0px) + 18px);
+  left: 50%; transform: translateX(-50%);
+  z-index: 20;
+  background: rgba(255,255,255,.18);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,.44); border-radius: 50px;
+  padding: 7px 20px;
+  font-family: 'Trebuchet MS', sans-serif; font-size: .7rem;
+  letter-spacing: .14em; color: rgba(255,255,255,.88);
+  text-shadow: 0 1px 4px rgba(120,40,160,.5); white-space: nowrap;
+}
+
+/* ── Unsplash photo layer ───────────────────────────── */
+#bg-photo {
+  position: fixed; inset: 0; z-index: -1;
+  background-size: cover; background-position: center;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+#bg-photo.loaded { opacity: 1; }
+#photo-credit {
+  position: fixed; bottom: 62px; left: 14px; z-index: 25;
+  font-size: .56rem; font-family: 'Trebuchet MS', sans-serif;
+  color: rgba(255,255,255,.45);
+}
+#photo-credit a { color: inherit; text-decoration: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sky, .cloud, .sparkle-ring,
+  .front-icon, .back-emoji, .shimmer-bar::after { animation: none !important; }
+}
+
+/* ── Password overlay ─────────────────────────────────── */
+#pw-overlay {
+  position: fixed; inset: 0; z-index: 999;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 24px;
+  background: linear-gradient(148deg,
+    rgba(255,110,199,.92) 0%, rgba(199,125,255,.92) 50%, rgba(61,0,64,.88) 100%);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  transition: opacity 0.6s ease;
+}
+#pw-overlay.hidden { opacity: 0; pointer-events: none; }
+#pw-overlay .pw-title {
+  font-family: Georgia, serif; font-size: 2rem; color: #fff;
+  letter-spacing: .1em;
+  text-shadow: 0 0 22px rgba(255,110,199,.9), 0 0 52px rgba(200,100,255,.6);
+}
+#pw-overlay .pw-sub {
+  font-family: 'Trebuchet MS', sans-serif; font-size: .75rem;
+  color: rgba(255,255,255,.7); letter-spacing: .22em; text-transform: uppercase;
+}
+#pw-overlay .pw-box {
+  background: rgba(255,255,255,.18);
+  border: 1.5px solid rgba(255,255,255,.5);
+  border-radius: 50px; padding: 14px 24px;
+  display: flex; gap: 12px; align-items: center;
+}
+#pw-input {
+  background: none; border: none; outline: none;
+  font-family: 'Trebuchet MS', sans-serif; font-size: 1rem;
+  color: #fff; letter-spacing: .08em; width: 180px;
+}
+#pw-input::placeholder { color: rgba(255,255,255,.45); }
+#pw-btn {
+  background: rgba(255,255,255,.25); border: 1px solid rgba(255,255,255,.5);
+  border-radius: 50px; padding: 8px 18px;
+  color: #fff; font-size: .8rem; letter-spacing: .12em;
+  cursor: pointer; transition: background .2s;
+}
+#pw-btn:active { background: rgba(255,255,255,.4); }
+#pw-error {
+  font-family: 'Trebuchet MS', sans-serif; font-size: .72rem;
+  color: rgba(255,220,240,.9); letter-spacing: .1em;
+  opacity: 0; transition: opacity .3s;
+}
+#pw-error.show { opacity: 1; }
+</style>
+
+<!-- Password overlay -->
+<div id="pw-overlay">
+  <div class="pw-title">Puckilander</div>
+  <div class="pw-sub">Nur für dich</div>
+  <div class="pw-box">
+    <input id="pw-input" type="password" placeholder="Passwort…" autocomplete="off">
+    <button id="pw-btn">✨</button>
+  </div>
+  <div id="pw-error">Falsches Passwort 🌸</div>
+</div>
+
+<!-- Background -->
+<div id="bg-photo"></div>
+<div class="sky"></div>
+<div class="clouds">
+  <div class="cloud ca"></div><div class="cloud cb"></div>
+  <div class="cloud cc"></div><div class="cloud cd"></div>
+  <div class="cloud ce"></div><div class="cloud cglow"></div>
+</div>
+<div class="sparkles" id="sparkles"></div>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-name">Puckilander</div>
+  <div class="header-date" id="headerDate"></div>
+</header>
+
+<!-- Main scene -->
+<div class="scene">
+  <div id="tilt-wrap">
+    <div id="cardsStage">
+      <div class="card-slot" id="slotLeft"></div>
+      <div class="card-slot" id="slotCenter"></div>
+      <div class="card-slot" id="slotRight"></div>
+    </div>
+  </div>
+</div>
+
+<div class="day-counter" id="dayCounter"></div>
+<div id="photo-credit"></div>
+
+<script>
+// ── Cards data ────────────────────────────────────────────────────────────────
+const START_DATE = new Date('2026-06-24T00:00:00');
+const CARDS = [
+  { emoji:'🌸', title:'Du bist wunderschön',        msg:'Nicht nur von außen — sondern tief in deiner Seele. Du trägst eine Schönheit in dir, die Räume erhellt und Herzen berührt.' },
+  { emoji:'🦋', title:'Stärker als du weißt',        msg:'Jeder Sturm, den du überstanden hast, hat dich geformt. Du bist tapferer als du dich jemals fühlst.' },
+  { emoji:'🌈', title:'Heute gehört dir',             msg:'Atme tief ein. Dieser Tag ist ein Geschenk und er gehört dir. Füll ihn mit Dingen, die deine Seele tanzen lassen.' },
+  { emoji:'💕', title:'Du verdienst alles Gute',      msg:'Jede Freude, jede Umarmung, jeder Moment des Glücks — du verdienst das alles und noch so viel mehr.' },
+  { emoji:'🌙', title:'Deine Träume sind real',       msg:'Was du dir erträumst, hat einen Grund, warum es in deinem Herzen wohnt. Trau dich, es in die Welt zu holen.' },
+  { emoji:'⭐', title:'Du bist jemand Besonderes',    msg:'Von all den Menschen auf dieser Erde bist du ein einzigartiges Wunder. Es gibt niemanden wie dich — und das ist das Schönste.' },
+  { emoji:'🍀', title:'Glück ist auf deiner Seite',  msg:'Das Universum arbeitet für dich. Auch wenn es sich manchmal nicht so anfühlt — alles fügt sich zusammen.' },
+  { emoji:'🦄', title:'Du bist einzigartig',          msg:'Deine Andersartigkeit ist keine Schwäche — sie ist deine Superkraft. Sei immer unverstellt du selbst.' },
+  { emoji:'🌺', title:'Lass dich fallen',             msg:'Ins Leben, in den Moment, ins Lachen. Du musst nicht alles kontrollieren. Manchmal ist das Loslassen das Schönste.' },
+  { emoji:'💫', title:'Dein Lächeln ist Magie',       msg:'Wenn du lächelst, verändert sich die Energie im ganzen Raum. Du verbreitest Licht, ohne es überhaupt zu wissen.' },
+  { emoji:'🌷', title:'Du bist geliebt',              msg:'Tiefer, inniger und bedingungsloser als du es dir vorstellst. Du wirst gesehen, du wirst gehalten, du bist geliebt.' },
+  { emoji:'🎀', title:'Du bist genug',                msg:'Genau so, wie du gerade bist. Nicht wenn du mehr geleistet hast. Nicht irgendwann. Jetzt. Genau so.' },
+  { emoji:'🌊', title:'Du fließt mit dem Leben',      msg:'Wie Wasser findest du deinen Weg. Durch jedes Hindernis, um jeden Stein herum. Du weißt, wie man fließt.' },
+  { emoji:'✨', title:'Du glänzt auf deine Art',      msg:'Du musst nicht so sein wie alle anderen. Deine eigene Art zu leuchten ist wertvoller als jede Imitation.' },
+  { emoji:'🍓', title:'Das Leben ist süß mit dir',    msg:'Du bringst Wärme in alles, was du berührst. Die Welt schmeckt ein kleines bisschen besser, weil du in ihr bist.' },
+  { emoji:'🌻', title:'Du bringst Sonne rein',        msg:'Wie eine Sonnenblume drehst du dich zum Licht — und machst dabei alles heller, was neben dir wächst.' },
+  { emoji:'💎', title:'Du bist ein Diamant',          msg:'Unter Druck entstanden, unter Druck gewachsen. Jede schwere Zeit hat dich klarer und schöner gemacht.' },
+  { emoji:'🌸', title:'Vertrau deiner Intuition',     msg:'Das leise Gefühl in deinem Bauch weiß oft mehr als jeder Ratschlag. Vertrau dir selbst. Du bist weise.' },
+  { emoji:'🎶', title:'Dein Leben ist ein Lied',      msg:'Es hat sanfte Töne und laute Passagen, stille Momente und wildes Crescendo. Es ist das schönste Lied, das ich kenne.' },
+  { emoji:'🌟', title:'Du leuchtest von innen',       msg:'Es ist kein Make-up, kein Filter, kein Zufall — du trägst echtes Licht in dir. Lass es strahlen.' },
+  { emoji:'💝', title:'Deine Güte ist ansteckend',   msg:'Die Art, wie du für andere da bist, wie du zuhörst, wie du liebst — das verändert Menschen. Du veränderst Menschen.' },
+  { emoji:'🧚', title:'Du bist wie Magie',            msg:'Manche Dinge kann man nicht erklären. Wie du denkst, wie du liebst, wie du einfach du bist — das ist pure Magie.' },
+  { emoji:'🫧', title:'Lass los, was nicht dient',   msg:'Du darfst Dinge hinter dir lassen, die dich beschweren. Leichter werden ist keine Schwäche — es ist Weisheit.' },
+  { emoji:'🌸', title:'Du bist tapfer',               msg:'Jeden Tag aufstehen, weitermachen, das Beste geben — das braucht mehr Mut als du weißt. Du bist wirklich tapfer.' },
+  { emoji:'🦋', title:'Jeder Tag ein Neuanfang',     msg:'Gestern war gestern. Du darfst heute neu beginnen. So oft du willst, so oft du brauchst. Immer.' },
+  { emoji:'💕', title:'Das Beste kommt noch',         msg:'Alles, was du dir wünschst, liegt noch vor dir. Das schönste Kapitel deines Lebens ist noch nicht geschrieben.' },
+  { emoji:'🌈', title:'Du machst die Welt schöner',  msg:'Wirklich. Die Welt ist ein besserer Ort, weil du in ihr bist. Das ist keine Übertreibung — es ist die Wahrheit.' },
+  { emoji:'✨', title:'Du bist aus Sternenstaub',     msg:'Buchstäblich. Jedes Atom in dir wurde einmal von einem Stern erschaffen. Du bist kosmische Magie in Menschengestalt.' },
+  { emoji:'💖', title:'Du bist unvergesslich',        msg:'Die Menschen, denen du begegnest, tragen ein Stück von dir mit sich. Du hinterlässt Spuren — lichte, warme, schöne Spuren.' },
+  { emoji:'🌙', title:'Du bist mein liebster Mensch', msg:'Von allen Menschen auf dieser Erde bist du meiner. Jeden Tag aufs Neue. Für immer. Ich liebe dich.' },
+];
+
+// ── Date setup ────────────────────────────────────────────────────────────────
+const now        = new Date();
+const elapsed    = Math.floor((now - START_DATE) / 86400000);
+const activeIdx  = Math.min(Math.max(elapsed, 0), CARDS.length - 1);
+
+const DAYS   = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+document.getElementById('headerDate').textContent =
+  `${DAYS[now.getDay()]}, ${now.getDate()}. ${MONTHS[now.getMonth()]}`;
+
+// ── Carousel state ────────────────────────────────────────────────────────────
+const stage      = document.getElementById('cardsStage');
+const slotLeft   = document.getElementById('slotLeft');
+const slotCenter = document.getElementById('slotCenter');
+const slotRight  = document.getElementById('slotRight');
+let   viewIdx    = activeIdx;
+let   navigating = false;
+
+function storeKey(i) { return `puckilander_revealed_${i}`; }
+function isRevealed(i) { return i < activeIdx || !!localStorage.getItem(storeKey(i)); }
+
+// Build and fill one slot for a given card index
+function fillSlot(slot, cardIdx) {
+  slot.innerHTML = '';
+  slot.classList.remove('revealed', 'entering');
+
+  if (cardIdx < 0 || cardIdx >= CARDS.length) {
+    slot.style.visibility = 'hidden';
+    return;
+  }
+  slot.style.visibility = '';
+
+  const card     = CARDS[cardIdx];
+  const locked   = cardIdx > activeIdx;
+  const revealed = isRevealed(cardIdx);
+  const todayUnrevealed = cardIdx === activeIdx && !revealed;
+
+  if (revealed) slot.classList.add('revealed');
+
+  // Sparkle ring only for today's unrevealed card
+  if (todayUnrevealed) {
+    const ring = document.createElement('div');
+    ring.className = 'sparkle-ring';
+    slot.appendChild(ring);
+  }
+
+  // Flip shell
+  const shell   = document.createElement('div');   shell.className = 'flip-shell';
+  const flipper = document.createElement('div');   flipper.className = 'flipper' + (revealed ? ' flipped' : '');
+  const bobWrap = document.createElement('div');   bobWrap.className = 'bob-wrap';
+
+  // Front face
+  const front = document.createElement('div');
+  front.className = 'face front';
+  if (locked) {
+    front.innerHTML = `<div class="front-label">Tag ${cardIdx + 1}</div>
+      <span class="front-icon" style="font-size:2.8rem">🔒</span>
+      <div class="front-hint">Ab morgen verfügbar</div>`;
+  } else {
+    front.innerHTML = `<div class="shimmer-bar"></div>
+      <div class="front-label">Tag ${cardIdx + 1}</div>
+      <span class="front-icon">✨</span>
+      <div class="front-hint">Tippe um zu öffnen</div>`;
+  }
+
+  // Back face
+  const back = document.createElement('div');
+  back.className = 'face back';
+  back.innerHTML = `<div class="back-day">Tag ${cardIdx + 1}</div>
+    <span class="back-emoji">${card.emoji}</span>
+    <img class="back-gif" alt="" loading="lazy">
+    <div class="back-title">${card.title}</div>
+    <p class="back-msg">${card.msg}</p>`;
+  if (!locked) loadCardGif(cardIdx, back.querySelector('.back-gif'));
+
+  bobWrap.append(front, back);
+  flipper.appendChild(bobWrap);
+  shell.appendChild(flipper);
+  slot.appendChild(shell);
+
+  // Tap to reveal: only today's unrevealed card
+  if (todayUnrevealed) {
+    flipper.addEventListener('click', function() {
+      localStorage.setItem(storeKey(cardIdx), '1');
+      flipper.classList.add('flipped');
+      slot.classList.add('revealed');
+      const ring = slot.querySelector('.sparkle-ring');
+      if (ring) ring.style.opacity = '0';
+    });
+  }
+}
+
+function renderView() {
+  fillSlot(slotLeft,   viewIdx - 1);
+  fillSlot(slotCenter, viewIdx);
+  fillSlot(slotRight,  viewIdx + 1);
+  document.getElementById('dayCounter').textContent =
+    elapsed < 0 ? '✨ Startet am 24. Juni' : `Tag ${viewIdx + 1} von ${CARDS.length}`;
+}
+
+function navigate(dir) {
+  const next = viewIdx + dir;
+  if (next < 0 || next >= CARDS.length || navigating) return;
+  navigating = true;
+  stage.classList.add('navigating');
+
+  stage.style.transition = 'transform 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+  stage.style.transform  = `translateX(${dir === 1 ? -330 : 330}px)`;
+
+  setTimeout(() => {
+    viewIdx = next;
+    stage.style.transition = 'none';
+    stage.style.transform  = '';
+    renderView();
+    stage.getBoundingClientRect();
+    stage.style.transition = '';
+    stage.classList.remove('navigating');
+    navigating = false;
+  }, 440);
+}
+
+// ── Klipy GIF per card ───────────────────────────────────────────────────────
+const KLIPY_KEY = 'tb7vKsBjDQBtMLMD77FjB8RsakHHLZtDY9k64MaCqMIaqFPilvOfgyGjfVBXBryd';
+const GIF_QUERIES = {
+  '🌸':'pink flowers cute aesthetic','🦋':'butterfly cute pastel',
+  '🌈':'rainbow colorful cute','💕':'pink hearts love cute',
+  '🌙':'moon stars dreamy','⭐':'stars sparkle glitter',
+  '🍀':'lucky clover cute','🦄':'unicorn rainbow cute',
+  '🌺':'tropical flower pink cute','💫':'sparkle magic glitter',
+  '🌷':'pink tulip flower cute','🎀':'pink bow ribbon cute',
+  '🌊':'ocean waves soft pastel','✨':'glitter sparkle cute',
+  '🍓':'strawberry cute kawaii','🌻':'sunflower cute happy',
+  '💎':'diamond sparkle bling','🎶':'music notes dancing cute',
+  '🌟':'star shining sparkle','💝':'pink heart love cute',
+  '💖':'glitter heart pink','🧚':'fairy magic wings cute',
+  '🫧':'bubbles soft pastel',
+};
+async function loadCardGif(cardIdx, imgEl) {
+  const cKey = `puckilander_gif_${cardIdx}`;
+  let url = localStorage.getItem(cKey);
+  if (!url) {
+    const query = GIF_QUERIES[CARDS[cardIdx].emoji] || 'cute kawaii pink';
+    try {
+      const res  = await fetch(
+        `https://api.klipy.com/v2/search?q=${encodeURIComponent(query)}&key=${KLIPY_KEY}&limit=3`,
+      );
+      const json = await res.json();
+      const items = json.results || [];
+      const item = items[cardIdx % items.length];
+      url = item?.media_formats?.tinygif?.url
+         || item?.media_formats?.gif?.url
+         || item?.media_formats?.mp4?.url;
+      if (url) localStorage.setItem(cKey, url);
+    } catch(e) { return; }
+  }
+  if (url && imgEl) { imgEl.onload = () => imgEl.classList.add('loaded'); imgEl.src = url; }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+renderView();
+
+// Entry animation on center slot (only when calendar is active)
+if (elapsed >= 0) {
+  slotCenter.classList.add('entering');
+  setTimeout(() => slotCenter.classList.remove('entering'), 960);
+}
+
+// ── Swipe + tap side slots to navigate ───────────────────────────────────────
+const scene = document.querySelector('.scene');
+let tx0 = 0, dragging = false;
+
+scene.addEventListener('touchstart', e => {
+  tx0 = e.touches[0].clientX; dragging = false;
+}, { passive: true });
+scene.addEventListener('touchmove', e => {
+  if (Math.abs(e.touches[0].clientX - tx0) > 8) dragging = true;
+}, { passive: true });
+scene.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - tx0;
+  if (dragging && Math.abs(dx) > 40) navigate(dx < 0 ? 1 : -1);
+});
+
+slotLeft.addEventListener('click',  () => { if (!dragging) navigate(-1); });
+slotRight.addEventListener('click', () => { if (!dragging) navigate(1); });
+
+// ── Unsplash daily background ─────────────────────────────────────────────────
+const UNSPLASH_KEY = '7VyEvJL6dc87s_F-8iKhJ4JzEsrVtbZEsHhZq04Z-Ho';
+const BG_QUERIES = [
+  'pink flowers aesthetic','pink cherry blossom bokeh','pink sky dreamy',
+  'pastel pink nature','pink roses soft light','pink sunset clouds',
+  'pink garden aesthetic','pink peony flowers','pink dreamy landscape','pink abstract soft'
+];
+(async function loadDailyPhoto() {
+  const today = new Date().toISOString().slice(0, 10);
+  const cKey  = `puckilander_bg_${today}`;
+  let   data  = JSON.parse(localStorage.getItem(cKey) || 'null');
+  if (!data) {
+    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0)) / 86400000);
+    const query = BG_QUERIES[dayOfYear % BG_QUERIES.length];
+    try {
+      const res  = await fetch(
+        `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=portrait&content_filter=high`,
+        { headers: { Authorization: `Client-ID ${UNSPLASH_KEY}` } }
+      );
+      const json = await res.json();
+      data = {
+        url:   `${json.urls.raw}&w=900&q=80&fm=jpg&fit=crop&crop=entropy`,
+        name:  json.user.name,
+        uLink: `${json.user.links.html}?utm_source=puckilander&utm_medium=referral`,
+      };
+      localStorage.setItem(cKey, JSON.stringify(data));
+    } catch(e) { return; }
+  }
+  const el = document.getElementById('bg-photo');
+  const img = new Image();
+  img.onload = () => { el.style.backgroundImage = `url(${data.url})`; el.classList.add('loaded'); };
+  img.src = data.url;
+})();
+
+// ── 3D Tilt ───────────────────────────────────────────────────────────────────
+(function() {
+  const el  = document.getElementById('tilt-wrap');
+  const MAX = 8;
+
+  function tilt(rx, ry) {
+    el.style.transition = 'transform 0.1s ease-out';
+    el.style.transform  = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+  }
+  function reset() {
+    el.style.transition = 'transform 0.5s ease-in-out';
+    el.style.transform  = 'perspective(900px) rotateX(0deg) rotateY(0deg)';
+  }
+
+  document.addEventListener('mousemove', e => {
+    const r = el.getBoundingClientRect();
+    const rx = ((e.clientY - (r.top + r.height / 2)) / (r.height / 2)) * -MAX;
+    const ry = ((e.clientX - (r.left + r.width  / 2)) / (r.width  / 2)) *  MAX;
+    tilt(Math.max(-MAX, Math.min(MAX, rx)), Math.max(-MAX, Math.min(MAX, ry)));
+  });
+  document.addEventListener('mouseleave', reset);
+
+  function attachGyro() {
+    let baseB = null;
+    window.addEventListener('deviceorientation', e => {
+      if (baseB === null) baseB = e.beta ?? 45;
+      const ry = Math.max(-MAX, Math.min(MAX, (e.gamma ?? 0) / 45 * MAX));
+      const rx = Math.max(-MAX, Math.min(MAX, ((e.beta ?? baseB) - baseB) / 30 * MAX));
+      tilt(rx, ry);
+    });
+  }
+
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    document.addEventListener('touchstart', function req() {
+      document.removeEventListener('touchstart', req);
+      DeviceOrientationEvent.requestPermission()
+        .then(s => { if (s === 'granted') attachGyro(); })
+        .catch(() => {});
+    }, { once: true });
+  } else if (window.DeviceOrientationEvent) {
+    attachGyro();
+  }
+})();
+
+// ── Password gate ─────────────────────────────────────────────────────────────
+(async function() {
+  // ponytail: change this hash to lock with a different password (SHA-256 lowercase hex)
+  const PW_HASH = '59cea62bbdfb4dc0ccac8a9b92f35bf8b4d96762871626956217907c09fc035b';
+  const overlay = document.getElementById('pw-overlay');
+  const input   = document.getElementById('pw-input');
+  const errEl   = document.getElementById('pw-error');
+
+  if (sessionStorage.getItem('puckilander_unlocked')) {
+    overlay.style.display = 'none';
+    return;
+  }
+
+  async function checkPw() {
+    const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input.value));
+    const hex  = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    if (hex === PW_HASH) {
+      sessionStorage.setItem('puckilander_unlocked', '1');
+      overlay.classList.add('hidden');
+      setTimeout(() => overlay.remove(), 650);
+    } else {
+      errEl.classList.add('show');
+      input.value = '';
+      setTimeout(() => errEl.classList.remove('show'), 2000);
+    }
+  }
+
+  document.getElementById('pw-btn').addEventListener('click', checkPw);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') checkPw(); });
+})();
+
+// ── Floating sparkles ─────────────────────────────────────────────────────────
+(function() {
+  const cont = document.getElementById('sparkles');
+  const syms = ['✦','⋆','✧','·','✦','⋆'];
+  for (let i = 0; i < 28; i++) {
+    const el  = document.createElement('span');
+    const sym = Math.random() > .5, sz = 2 + Math.random() * 4;
+    el.style.cssText = [
+      'position:absolute',
+      `left:${Math.random()*100}%`, `top:${5+Math.random()*88}%`,
+      sym
+        ? `font-size:${7+Math.random()*9}px;color:rgba(255,255,255,${.45+Math.random()*.55})`
+        : `width:${sz}px;height:${sz}px;background:rgba(255,255,255,.85);border-radius:50%`,
+      `animation:rise ${3.5+Math.random()*5}s ${-(Math.random()*14)}s ease-in-out infinite`,
+      'opacity:0','line-height:1','pointer-events:none',
+    ].join(';');
+    if (sym) el.textContent = syms[Math.floor(Math.random()*syms.length)];
+    cont.appendChild(el);
+  }
+})();
+</script>

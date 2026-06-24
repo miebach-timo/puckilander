@@ -1,0 +1,11 @@
+{
+  "name": "Puckilander",
+  "short_name": "Puckilander",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#FF6EC7",
+  "theme_color": "#FF6EC7",
+  "icons": [
+    { "src": "icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
