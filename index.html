@@ -19,12 +19,9 @@
   box-sizing: border-box; margin: 0; padding: 0;
   -webkit-tap-highlight-color: transparent; user-select: none;
 }
-html {
-  background: #C06EB4;
-}
-body {
+html, body {
   height: 100%; overflow: hidden;
-  background: #3D0040;
+  background: #D060B8;
   font-family: Georgia, 'Times New Roman', serif;
   touch-action: none;
 }
@@ -32,7 +29,6 @@ body {
 /* ── Aurora sky ─────────────────────────────────── */
 .sky {
   position: fixed; inset: 0;
-  bottom: calc(-1 * env(safe-area-inset-bottom, 34px));
   background:
     radial-gradient(ellipse 70% 55% at 12% 28%,  rgba(255,175,225,.90) 0%, transparent 58%),
     radial-gradient(ellipse 80% 58% at 88% 10%,  rgba(175,95,255,.80)  0%, transparent 54%),
@@ -338,7 +334,6 @@ body {
 /* ── Password overlay ─────────────────────────────────── */
 #pw-overlay {
   position: fixed; inset: 0; z-index: 999;
-  bottom: calc(-1 * env(safe-area-inset-bottom, 34px));
   display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 24px;
   background: linear-gradient(148deg, #FF6EC7 0%, #C77DFF 50%, #3D0040 100%);
