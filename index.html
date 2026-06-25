@@ -23,10 +23,11 @@ html, body {
   height: 100%; overflow: hidden;
   overscroll-behavior: none;
   /* ponytail: solid color fills the iOS standalone safe-area (a gradient image
-     leaves it white); gradient layered on top camouflages the seam. Tune both
-     to the .sky aurora if a seam still shows on device. */
-  background-color: #E58FD8;
-  background-image: linear-gradient(160deg, #C77DFF 0%, #E58FD8 45%, #F078C0 100%);
+     leaves it white); set to the .sky aurora's measured BOTTOM edge (#FA90D4)
+     so the bottom safe-area continues the background seamlessly. Vertical
+     gradient matches the aurora's measured top (#CA73E0) → bottom edge. */
+  background-color: #FA90D4;
+  background-image: linear-gradient(to bottom, #CA73E0 0%, #E58FD8 50%, #FA90D4 100%);
   font-family: Georgia, 'Times New Roman', serif;
   touch-action: none;
 }
