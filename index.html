@@ -21,7 +21,7 @@
 }
 html, body {
   height: 100%; overflow: hidden;
-  background: #D060B8;
+  background: linear-gradient(160deg, #FF6EC7 0%, #C77DFF 50%, #C060B0 100%);
   font-family: Georgia, 'Times New Roman', serif;
   touch-action: none;
 }
@@ -669,6 +669,11 @@ const BG_QUERIES = [
   const el = document.getElementById('bg-photo');
   const img = new Image();
   img.onload = () => { el.style.backgroundImage = `url(${data.url})`; el.classList.add('loaded'); };
+  img.onerror = () => {
+    // cached URL expired — clear and reload fresh
+    localStorage.removeItem(cKey);
+    location.reload();
+  };
   img.src = data.url;
 })();
 
