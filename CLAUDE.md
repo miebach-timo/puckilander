@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**Puckilander** — a 30-day German-language gift/affirmation calendar starting 2026-06-24. Single-file static web app, no build step, no dependencies.
+**Puckilander** — a 31-day German-language gift/affirmation calendar (24 Jun – 24 Jul 2026), starting 2026-06-24. Single-file static web app, no build step, no dependencies. Deployed at https://miebach-timo.github.io/puckilander/ (GitHub Pages).
 
 ## Running
 
@@ -20,24 +20,23 @@ No build, no compile, no install step.
 
 ## Architecture
 
-Everything lives in `index.html` (~687 lines):
+Everything lives in `index.html` (~780 lines): a `<style>` block, minimal HTML scaffold, then a vanilla JS block (`CARDS` array at line ~424) that builds the DOM.
 
-- **Lines 1–330**: `<style>` block — CSS variables, 3D transforms, all keyframe animations
-- **Lines 331–360**: HTML structure — minimal DOM, mostly built by JS
-- **Lines 361–687**: Vanilla JS — all app logic
+**Card system**: 31 hardcoded objects in `CARDS` (emoji + German affirmations). Active day index = `Math.floor((now - START_DATE) / 86400000)`, clamped to `[0, CARDS.length-1]`. Future cards render but stay locked.
 
-**Card system**: 30 hardcoded objects with emoji + German affirmations. Day index = `Math.floor((now - START_DATE) / 86400000)`.
+**State**: browser storage only.
+- `localStorage`: `puckilander_revealed_${i}`, `puckilander_bg_YYYY-MM-DD`, `puckilander_gif_${i}`
+- `sessionStorage`: `puckilander_unlocked` (password gate, cleared on tab close)
 
-**State**: `localStorage` only. Keys: `puckilander_revealed_${i}`, `puckilander_bg_YYYY-MM-DD`, `puckilander_gif_${i}`.
+**Password gate**: SHA-256 via WebCrypto, compared against `PW_HASH` (~line 724). No plaintext. Current password: `eileen` — to change it, replace `PW_HASH` with the new hash. The gyroscope permission is requested *synchronously* on the login button click — iOS requires the `DeviceOrientationEvent.requestPermission` call to originate from a user gesture.
 
-**APIs** (keys embedded in the file):
-- Unsplash — daily background photo, cached per date
-- Klipy — animated GIF per card, cached per card index
+**Background**: pure CSS — the `.sky` aurora gradient (fixed, `inset:0`) plus a matching `body` gradient that camouflages any iOS standalone safe-area seam. No background-photo API.
 
-**3D tilt**: inline `style.transform` on `#mainWrap` — gyroscope on mobile (iOS 13+ needs `DeviceOrientationEvent.requestPermission`), mousemove on desktop. **Do not add CSS animations to `#mainWrap`** — inline style and CSS animations fight over `transform`. Bob/float animations must live on a child wrapper.
+**API** (key embedded in the file):
+- Klipy — animated GIF per card, lazy-loaded, cached per card index
 
-## Open Tasks (PROGRESS.md)
+**3D tilt**: inline `style.transform` on `#tilt-wrap` — gyroscope on mobile, mousemove on desktop. **Do not add CSS animations to `#tilt-wrap`** — inline style and CSS animations fight over `transform`. Bob/float animations must live on a child wrapper.
 
-1. Apple touch icon (`<link rel="apple-touch-icon">`)
-2. GitHub Pages deployment
-3. Password screen — SHA-256 client-side hash, `sessionStorage` to persist unlock
+## Open Tasks (see PROGRESS.md)
+
+1. Top/bottom safe-area seam on iPhone standalone web app — mitigated by the `body` gradient camouflage (tune the stops in `html, body` to match `.sky` if a seam still shows on device).

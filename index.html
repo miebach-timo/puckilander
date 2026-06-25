@@ -22,7 +22,9 @@
 html, body {
   height: 100%; overflow: hidden;
   overscroll-behavior: none;
-  background: #E080C8;
+  /* ponytail: gradient camouflages any iOS standalone safe-area seam top/bottom;
+     tune stops to match the .sky aurora if a seam still shows on device */
+  background: linear-gradient(160deg, #C77DFF 0%, #E58FD8 45%, #F078C0 100%);
   font-family: Georgia, 'Times New Roman', serif;
   touch-action: none;
 }
@@ -163,10 +165,11 @@ html, body {
 }
 .flipper:not(.flipped):active { transform: scale(0.96) translateY(2px); }
 
-/* Bob — all center cards float, paused while navigating */
+/* Bob — center card (ring + faces) floats together, paused while navigating */
+.bob-host { position: absolute; inset: 0; }
 .bob-wrap { width: 100%; height: 100%; border-radius: 28px; transform-style: preserve-3d; }
-#slotCenter .bob-wrap { animation: bob 4s ease-in-out infinite; }
-#cardsStage.navigating .bob-wrap,
+#slotCenter .bob-host { animation: bob 4s ease-in-out infinite; }
+#cardsStage.navigating .bob-host,
 #cardsStage.navigating .front-icon,
 #cardsStage.navigating .shimmer-bar::after { animation-play-state: paused !important; }
 @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-11px)} }
@@ -312,22 +315,6 @@ html, body {
   text-shadow: 0 1px 4px rgba(120,40,160,.5); white-space: nowrap;
 }
 
-/* ── Unsplash photo layer ───────────────────────────── */
-#bg-photo {
-  position: fixed; inset: 0; z-index: -1;
-  width: 100%; height: 100%;
-  object-fit: cover; object-position: center;
-  opacity: 0;
-  transition: opacity 1.4s ease;
-}
-#bg-photo.loaded { opacity: 1; }
-#photo-credit {
-  position: fixed; bottom: 62px; left: 14px; z-index: 25;
-  font-size: .56rem; font-family: 'Trebuchet MS', sans-serif;
-  color: rgba(255,255,255,.45);
-}
-#photo-credit a { color: inherit; text-decoration: none; }
-
 @media (prefers-reduced-motion: reduce) {
   .sky, .cloud, .sparkle-ring,
   .front-icon, .back-emoji, .shimmer-bar::after { animation: none !important; }
@@ -389,7 +376,6 @@ html, body {
 </div>
 
 <!-- Background -->
-<img id="bg-photo" alt="" crossorigin="anonymous">
 <div class="sky"></div>
 <div class="clouds">
   <div class="cloud ca"></div><div class="cloud cb"></div>
@@ -416,7 +402,6 @@ html, body {
 </div>
 
 <div class="day-counter" id="dayCounter"></div>
-<div id="photo-credit"></div>
 
 <script>
 // ── Cards data ────────────────────────────────────────────────────────────────
@@ -476,6 +461,16 @@ let   navigating = false;
 function storeKey(i) { return `puckilander_revealed_${i}`; }
 function isRevealed(i) { return i < activeIdx || !!localStorage.getItem(storeKey(i)); }
 
+// German "in N days" countdown for locked cards
+const NUM = ['','einem','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn',
+  'elf','zwölf','dreizehn','vierzehn','fünfzehn','sechzehn','siebzehn','achtzehn','neunzehn','zwanzig',
+  'einundzwanzig','zweiundzwanzig','dreiundzwanzig','vierundzwanzig','fünfundzwanzig',
+  'sechsundzwanzig','siebenundzwanzig','achtundzwanzig','neunundzwanzig'];
+function availIn(diff) {
+  if (diff === 1) return 'In einem Tag verfügbar';
+  return `In ${NUM[diff] || diff} Tagen verfügbar`;
+}
+
 // Build and fill one slot for a given card index
 function fillSlot(slot, cardIdx) {
   slot.innerHTML = '';
@@ -494,11 +489,14 @@ function fillSlot(slot, cardIdx) {
 
   if (revealed) slot.classList.add('revealed');
 
+  // Bob host — floats ring + flip-shell together (only center card animates)
+  const bobHost = document.createElement('div');   bobHost.className = 'bob-host';
+
   // Sparkle ring only for today's unrevealed card
   if (todayUnrevealed) {
     const ring = document.createElement('div');
     ring.className = 'sparkle-ring';
-    slot.appendChild(ring);
+    bobHost.appendChild(ring);
   }
 
   // Flip shell
@@ -512,7 +510,7 @@ function fillSlot(slot, cardIdx) {
   if (locked) {
     front.innerHTML = `<div class="front-label">Tag ${cardIdx + 1}</div>
       <span class="front-icon" style="font-size:2.8rem">🔒</span>
-      <div class="front-hint">Ab morgen verfügbar</div>`;
+      <div class="front-hint">${availIn(cardIdx - activeIdx)}</div>`;
   } else {
     front.innerHTML = `<div class="shimmer-bar"></div>
       <div class="front-label">Tag ${cardIdx + 1}</div>
@@ -533,7 +531,8 @@ function fillSlot(slot, cardIdx) {
   bobWrap.append(front, back);
   flipper.appendChild(bobWrap);
   shell.appendChild(flipper);
-  slot.appendChild(shell);
+  bobHost.appendChild(shell);
+  slot.appendChild(bobHost);
 
   // Tap to reveal: only today's unrevealed card
   if (todayUnrevealed) {
@@ -639,40 +638,6 @@ scene.addEventListener('touchend', e => {
 
 slotLeft.addEventListener('click',  () => { if (!dragging) navigate(-1); });
 slotRight.addEventListener('click', () => { if (!dragging) navigate(1); });
-
-// ── Unsplash daily background ─────────────────────────────────────────────────
-const UNSPLASH_KEY = '7VyEvJL6dc87s_F-8iKhJ4JzEsrVtbZEsHhZq04Z-Ho';
-const BG_QUERIES = [
-  'pink flowers aesthetic','pink cherry blossom bokeh','pink sky dreamy',
-  'pastel pink nature','pink roses soft light','pink sunset clouds',
-  'pink garden aesthetic','pink peony flowers','pink dreamy landscape','pink abstract soft'
-];
-(async function loadDailyPhoto() {
-  const today = new Date().toISOString().slice(0, 10);
-  const cKey  = `puckilander_bg_${today}`;
-  let   data  = JSON.parse(localStorage.getItem(cKey) || 'null');
-  if (!data) {
-    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0)) / 86400000);
-    const query = BG_QUERIES[dayOfYear % BG_QUERIES.length];
-    try {
-      const res  = await fetch(
-        `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=portrait&content_filter=high`,
-        { headers: { Authorization: `Client-ID ${UNSPLASH_KEY}` } }
-      );
-      const json = await res.json();
-      data = {
-        url:   `${json.urls.raw}&w=900&q=80&fm=jpg&fit=crop&crop=entropy`,
-        name:  json.user.name,
-        uLink: `${json.user.links.html}?utm_source=puckilander&utm_medium=referral`,
-      };
-      localStorage.setItem(cKey, JSON.stringify(data));
-    } catch(e) { return; }
-  }
-  const el = document.getElementById('bg-photo');
-  el.onload  = () => el.classList.add('loaded');
-  el.onerror = () => { localStorage.removeItem(cKey); };
-  el.src = data.url;
-})();
 
 // ── 3D Tilt ───────────────────────────────────────────────────────────────────
 (function() {

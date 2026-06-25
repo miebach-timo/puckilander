@@ -40,17 +40,16 @@
 
 ## Offene Punkte
 
-- [ ] **Unsplash-Hintergrundbild wird auf iOS NICHT angezeigt** (Desktop funktioniert)
-  - Versuchte Fixes (haben auf iOS NICHT funktioniert):
-    - `img.onerror` Handler zum Löschen abgelaufener Cache-URLs
-    - body-Hintergrund als Gradient/Volltonfarbe als Camouflage
-    - `#bg-photo` von `<div>` mit CSS `background-image` auf natives `<img>`-Element + `crossorigin="anonymous"` umgestellt
-    - `height: 100dvh` entfernt, nur noch `inset: 0`
-  - Status: weiterhin offen, iOS zeigt nur den Fallback-Verlauf, kein API-Foto
-- [ ] Rand unten auf iPhone in Safari (zusammen mit dem `100dvh`-Entfernen angegangen, iOS-Verhalten noch nicht bestätigt)
+- [ ] Rand oben/unten auf iPhone als Home-Screen-Webapp — abgefedert durch den `body`-Gradient (camoufliert die Safe-Area-Naht). Falls auf dem Gerät noch sichtbar: Gradient-Stops in `html, body` an die `.sky`-Töne angleichen.
+
+## Entfernt
+
+- [x] **Unsplash-Anbindung komplett entfernt** — lief auf iOS nie zuverlässig (zeigte nur den Fallback-Verlauf). `.sky`-Aurora ist jetzt alleiniger Hintergrund. (`#bg-photo`, `#photo-credit`, `UNSPLASH_KEY`, `BG_QUERIES`, `loadDailyPhoto` raus)
 
 ## Erledigt seit letztem Stand
 
+- [x] Sparkle-Ring schwebt jetzt synchron mit der Karte (Bob-Animation auf `.bob-host`, umschließt Ring + Flip-Shell)
+- [x] Lock-Countdown dynamisch: „In einem Tag / In zwei Tagen … verfügbar" statt statisch „Ab morgen verfügbar"
 - [x] Gyro-Effekt auf iPhone funktioniert (Permission-Fix bestätigt)
 - [x] Karten-Overlay-Sync korrigiert (`translateZ(2px)` entfernt → `z-index: 1`)
 - [x] Tag 2 Text + Zitronen-Emoji/GIF (🍋) aktualisiert
