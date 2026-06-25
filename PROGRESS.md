@@ -40,6 +40,17 @@
 
 ## Offene Punkte
 
-- [ ] Rand unten auf iPhone in Safari noch sichtbar (in Arbeit — body bg `#D060B8` als Fallback gesetzt, iOS-Verhalten noch nicht 100% stabil)
-- [ ] Gyro-Effekt auf iPhone noch nicht getestet nach Permission-Fix
-- [ ] Karten-Sync / Overlay-Problem noch nicht vollständig bestätigt behoben
+- [ ] **Unsplash-Hintergrundbild wird auf iOS NICHT angezeigt** (Desktop funktioniert)
+  - Versuchte Fixes (haben auf iOS NICHT funktioniert):
+    - `img.onerror` Handler zum Löschen abgelaufener Cache-URLs
+    - body-Hintergrund als Gradient/Volltonfarbe als Camouflage
+    - `#bg-photo` von `<div>` mit CSS `background-image` auf natives `<img>`-Element + `crossorigin="anonymous"` umgestellt
+    - `height: 100dvh` entfernt, nur noch `inset: 0`
+  - Status: weiterhin offen, iOS zeigt nur den Fallback-Verlauf, kein API-Foto
+- [ ] Rand unten auf iPhone in Safari (zusammen mit dem `100dvh`-Entfernen angegangen, iOS-Verhalten noch nicht bestätigt)
+
+## Erledigt seit letztem Stand
+
+- [x] Gyro-Effekt auf iPhone funktioniert (Permission-Fix bestätigt)
+- [x] Karten-Overlay-Sync korrigiert (`translateZ(2px)` entfernt → `z-index: 1`)
+- [x] Tag 2 Text + Zitronen-Emoji/GIF (🍋) aktualisiert
