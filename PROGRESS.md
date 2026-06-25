@@ -13,10 +13,7 @@
 - [x] 3-Slot Karussell mit Swipe + Tap Navigation
 - [x] Gesperrte Zukünftige Karten sichtbar aber nicht aufdeckbar
 - [x] Revealed-State in localStorage gespeichert
-- [x] Aurora-Hintergrund mit CSS-Animationen (Sky, Clouds, Sparkles)
-- [x] Unsplash API — täglich wechselndes Hintergrundbild
-  - Gecacht in localStorage (`puckilander_bg_YYYY-MM-DD`)
-  - Key: `7VyEvJL6dc87s_F-8iKhJ4JzEsrVtbZEsHhZq04Z-Ho`
+- [x] Aurora-Hintergrund mit CSS-Animationen (Sky, Clouds, Sparkles) — alleiniger Hintergrund
 - [x] Klipy GIF API — passende GIFs pro Karte auf der Rückseite
   - Lazy loaded, gecacht in localStorage (`puckilander_gif_N`)
   - Key: `tb7vKsBjDQBtMLMD77FjB8RsakHHLZtDY9k64MaCqMIaqFPilvOfgyGjfVBXBryd`
@@ -40,7 +37,7 @@
 
 ## Offene Punkte
 
-- [ ] Rand oben/unten auf iPhone als Home-Screen-Webapp — abgefedert durch den `body`-Gradient (camoufliert die Safe-Area-Naht). Falls auf dem Gerät noch sichtbar: Gradient-Stops in `html, body` an die `.sky`-Töne angleichen.
+- [ ] iOS Home-Screen-Webapp: Safe-Area oben/unten am echten Gerät final bestätigen. Aktueller Stand sollte nahtlos sein (siehe unten); falls noch eine Kante: Werte in `html, body` an die `.sky`-Töne angleichen.
 
 ## Entfernt
 
@@ -48,8 +45,11 @@
 
 ## Erledigt seit letztem Stand
 
+- [x] Login-Screen nutzt denselben Hintergrund wie das Hauptinterface (Overlay transparent, Aurora scheint durch; Vordergrund via `body.locked` ausgeblendet)
+- [x] Durchgängiger Hintergrund ohne Kante: solide Füllfarbe = gemessene untere Aurora-Kante (`#FA90D4`), vertikaler Gradient oben (`#CA73E0`) → unten. Behebt den weißen Rand der iOS-Safe-Area (Volltonfarbe füllt sie, Gradient-Image nicht)
 - [x] Sparkle-Ring schwebt jetzt synchron mit der Karte (Bob-Animation auf `.bob-host`, umschließt Ring + Flip-Shell)
 - [x] Lock-Countdown dynamisch: „In einem Tag / In zwei Tagen … verfügbar" statt statisch „Ab morgen verfügbar"
 - [x] Gyro-Effekt auf iPhone funktioniert (Permission-Fix bestätigt)
 - [x] Karten-Overlay-Sync korrigiert (`translateZ(2px)` entfernt → `z-index: 1`)
 - [x] Tag 2 Text + Zitronen-Emoji/GIF (🍋) aktualisiert
+- [x] Repo aufgeräumt: Debug-Screenshots gelöscht, `.gitignore` (`*.png` außer `icon.png`, `.playwright-mcp/`)
