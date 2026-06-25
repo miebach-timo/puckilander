@@ -28,7 +28,7 @@ html, body {
 
 /* ── Aurora sky ─────────────────────────────────── */
 .sky {
-  position: fixed; inset: 0; bottom: -50px;
+  position: fixed; top: 0; left: 0; right: 0; height: 100vh;
   background:
     radial-gradient(ellipse 70% 55% at 12% 28%,  rgba(255,175,225,.90) 0%, transparent 58%),
     radial-gradient(ellipse 80% 58% at 88% 10%,  rgba(175,95,255,.80)  0%, transparent 54%),
@@ -110,7 +110,7 @@ html, body {
   top: 0;
 }
 #slotLeft   { left: -330px; }
-#slotCenter { left: 0; transform: translateZ(2px); }
+#slotCenter { left: 0; z-index: 1; }
 #slotRight  { left: 330px; }
 
 /* Entry animation — spring from below */
@@ -313,7 +313,7 @@ html, body {
 
 /* ── Unsplash photo layer ───────────────────────────── */
 #bg-photo {
-  position: fixed; inset: 0; z-index: -1;
+  position: fixed; top: 0; left: 0; right: 0; height: 100vh; z-index: -1;
   background-size: cover; background-position: center;
   opacity: 0;
   transition: opacity 1.4s ease;
@@ -333,7 +333,7 @@ html, body {
 
 /* ── Password overlay ─────────────────────────────────── */
 #pw-overlay {
-  position: fixed; inset: 0; bottom: -50px; z-index: 999;
+  position: fixed; top: 0; left: 0; right: 0; height: 100vh; z-index: 999;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 24px;
   background: linear-gradient(148deg, #FF6EC7 0%, #C77DFF 50%, #3D0040 100%);
