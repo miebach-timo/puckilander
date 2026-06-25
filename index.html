@@ -28,7 +28,7 @@ html, body {
 
 /* ── Aurora sky ─────────────────────────────────── */
 .sky {
-  position: fixed; inset: 0;
+  position: fixed; inset: 0; bottom: -50px;
   background:
     radial-gradient(ellipse 70% 55% at 12% 28%,  rgba(255,175,225,.90) 0%, transparent 58%),
     radial-gradient(ellipse 80% 58% at 88% 10%,  rgba(175,95,255,.80)  0%, transparent 54%),
@@ -333,7 +333,7 @@ html, body {
 
 /* ── Password overlay ─────────────────────────────────── */
 #pw-overlay {
-  position: fixed; inset: 0; z-index: 999;
+  position: fixed; inset: 0; bottom: -50px; z-index: 999;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 24px;
   background: linear-gradient(148deg, #FF6EC7 0%, #C77DFF 50%, #3D0040 100%);
@@ -421,7 +421,7 @@ html, body {
 const START_DATE = new Date('2026-06-24T00:00:00');
 const CARDS = [
   { emoji:'🌸', title:'Unser kleines Leben',          msg:'Ich liebe unser kleines Leben, because you\'re smol.' },
-  { emoji:'🦋', title:'Du machst das gut',            msg:'Du machst das gerade gut. Ich mein das ernst, kein Aufmuntern.' },
+  { emoji:'🍋', title:'Spaßi Getränki',               msg:'When life gives you lemons, machen wir ein spaßi getränki, weil du es verdient hast.' },
   { emoji:'🌈', title:'Jedes Mal wieder',             msg:'Ich würde mich immer wieder für dich entscheiden, stinker.' },
   { emoji:'💕', title:'Mit dir ist es besser',        msg:'Mit dir ist es besser. Das ist mir selbst aufgefallen.' },
   { emoji:'🌙', title:'Genau da',                     msg:'Ich schlafe jeden Abend genau da ein, wo ich sein will.' },
@@ -577,7 +577,7 @@ function navigate(dir) {
 // ── Klipy GIF per card ───────────────────────────────────────────────────────
 const KLIPY_KEY = 'tb7vKsBjDQBtMLMD77FjB8RsakHHLZtDY9k64MaCqMIaqFPilvOfgyGjfVBXBryd';
 const GIF_QUERIES = {
-  '🌸':'pink flowers cute aesthetic','🦋':'butterfly cute pastel',
+  '🌸':'pink flowers cute aesthetic','🦋':'butterfly cute pastel','🍋':'lemon drink cute kawaii',
   '🌈':'rainbow colorful cute','💕':'pink hearts love cute',
   '🌙':'moon stars dreamy','⭐':'stars sparkle glitter',
   '🍀':'lucky clover cute','🦄':'unicorn rainbow cute',
@@ -735,7 +735,11 @@ const BG_QUERIES = [
     if (hex === PW_HASH) {
       sessionStorage.setItem('puckilander_unlocked', '1');
       overlay.classList.add('hidden');
-      setTimeout(() => overlay.remove(), 650);
+      setTimeout(() => {
+        overlay.remove();
+        // fallback: request gyro on first touch after overlay gone (covers Enter-key unlock)
+        document.addEventListener('touchstart', () => window.__requestGyro?.(), { once: true, passive: true });
+      }, 660);
     } else {
       errEl.classList.add('show');
       input.value = '';
