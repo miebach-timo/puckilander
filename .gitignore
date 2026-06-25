@@ -1,0 +1,4 @@
+# Debug screenshots / Playwright artifacts
+*.png
+!icon.png
+.playwright-mcp/
