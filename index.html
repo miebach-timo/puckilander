@@ -21,14 +21,15 @@
 }
 html, body {
   height: 100%; overflow: hidden;
-  background: linear-gradient(160deg, #FF6EC7 0%, #C77DFF 50%, #C060B0 100%);
+  overscroll-behavior: none;
+  background: #E080C8;
   font-family: Georgia, 'Times New Roman', serif;
   touch-action: none;
 }
 
 /* ── Aurora sky ─────────────────────────────────── */
 .sky {
-  position: fixed; inset: 0; height: 100dvh;
+  position: fixed; inset: 0;
   background:
     radial-gradient(ellipse 70% 55% at 12% 28%,  rgba(255,175,225,.90) 0%, transparent 58%),
     radial-gradient(ellipse 80% 58% at 88% 10%,  rgba(175,95,255,.80)  0%, transparent 54%),
@@ -313,8 +314,9 @@ html, body {
 
 /* ── Unsplash photo layer ───────────────────────────── */
 #bg-photo {
-  position: fixed; inset: 0; height: 100dvh; z-index: -1;
-  background-size: cover; background-position: center;
+  position: fixed; inset: 0; z-index: -1;
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
   opacity: 0;
   transition: opacity 1.4s ease;
 }
@@ -333,7 +335,7 @@ html, body {
 
 /* ── Password overlay ─────────────────────────────────── */
 #pw-overlay {
-  position: fixed; inset: 0; height: 100dvh; z-index: 999;
+  position: fixed; inset: 0; z-index: 999;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 24px;
   background: linear-gradient(148deg, #FF6EC7 0%, #C77DFF 50%, #3D0040 100%);
@@ -387,7 +389,7 @@ html, body {
 </div>
 
 <!-- Background -->
-<div id="bg-photo"></div>
+<img id="bg-photo" alt="" crossorigin="anonymous">
 <div class="sky"></div>
 <div class="clouds">
   <div class="cloud ca"></div><div class="cloud cb"></div>
@@ -667,14 +669,9 @@ const BG_QUERIES = [
     } catch(e) { return; }
   }
   const el = document.getElementById('bg-photo');
-  const img = new Image();
-  img.onload = () => { el.style.backgroundImage = `url(${data.url})`; el.classList.add('loaded'); };
-  img.onerror = () => {
-    // cached URL expired — clear and reload fresh
-    localStorage.removeItem(cKey);
-    location.reload();
-  };
-  img.src = data.url;
+  el.onload  = () => el.classList.add('loaded');
+  el.onerror = () => { localStorage.removeItem(cKey); };
+  el.src = data.url;
 })();
 
 // ── 3D Tilt ───────────────────────────────────────────────────────────────────
