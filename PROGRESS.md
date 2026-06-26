@@ -46,6 +46,8 @@
 ## Erledigt seit letztem Stand
 
 - [x] Login-Screen nutzt denselben Hintergrund wie das Hauptinterface (Overlay transparent, Aurora scheint durch; Vordergrund via `body.locked` ausgeblendet)
+- [x] Tag 4 Text neu: „Mit dir isset einfach schöner, selbst bei 40 Grad und Körperkontakt."
+- [x] Kartentexte Korrekturlauf: Rechtschreib-/Satzzeichenfehler behoben (Tag 6, 9, 12, 13, 18, 19, 20, 21, 24, 25, 31) — bewusst gelassener Slang/Spitznamen (smol, beb, isset, Wallah, frfr …)
 - [x] Durchgängiger Hintergrund ohne Kante: solide Füllfarbe = gemessene untere Aurora-Kante (`#FA90D4`), vertikaler Gradient oben (`#CA73E0`) → unten. Behebt den weißen Rand der iOS-Safe-Area (Volltonfarbe füllt sie, Gradient-Image nicht)
 - [x] Sparkle-Ring schwebt jetzt synchron mit der Karte (Bob-Animation auf `.bob-host`, umschließt Ring + Flip-Shell)
 - [x] Lock-Countdown dynamisch: „In einem Tag / In zwei Tagen … verfügbar" statt statisch „Ab morgen verfügbar"
