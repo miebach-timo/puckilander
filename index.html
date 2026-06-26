@@ -20,21 +20,19 @@
   -webkit-tap-highlight-color: transparent; user-select: none;
 }
 html, body {
-  height: 100%; overflow: hidden;
+  /* ponytail: NOT height:100% — that collapses the iOS standalone ICB and the
+     fixed .sky stops covering the safe-areas (notch/home-indicator), leaving a
+     seam. 100vh under viewport-fit=cover = full physical screen incl. insets. */
+  min-height: 100vh; overflow: hidden;
   overscroll-behavior: none;
-  /* ponytail: solid color fills the iOS standalone safe-area (a gradient image
-     leaves it white); set to the .sky aurora's measured BOTTOM edge (#FA90D4)
-     so the bottom safe-area continues the background seamlessly. Vertical
-     gradient matches the aurora's measured top (#CA73E0) → bottom edge. */
-  background-color: #FA90D4;
-  background-image: linear-gradient(to bottom, #CA73E0 0%, #E58FD8 50%, #FA90D4 100%);
+  background: var(--deep); /* fallback behind the aurora; no camouflage needed */
   font-family: Georgia, 'Times New Roman', serif;
   touch-action: none;
 }
 
 /* ── Aurora sky ─────────────────────────────────── */
 .sky {
-  position: fixed; inset: 0;
+  position: fixed; inset: 0; width: 100vw; height: 100vh;
   background:
     radial-gradient(ellipse 70% 55% at 12% 28%,  rgba(255,175,225,.90) 0%, transparent 58%),
     radial-gradient(ellipse 80% 58% at 88% 10%,  rgba(175,95,255,.80)  0%, transparent 54%),
@@ -668,27 +666,6 @@ slotRight.addEventListener('click', () => { if (!dragging) navigate(1); });
     tilt(Math.max(-MAX, Math.min(MAX, rx)), Math.max(-MAX, Math.min(MAX, ry)));
   });
   document.addEventListener('mouseleave', reset);
-
-  function attachGyro() {
-    let baseB = null;
-    window.addEventListener('deviceorientation', e => {
-      if (baseB === null) baseB = e.beta ?? 45;
-      const ry = Math.max(-MAX, Math.min(MAX, (e.gamma ?? 0) / 45 * MAX));
-      const rx = Math.max(-MAX, Math.min(MAX, ((e.beta ?? baseB) - baseB) / 30 * MAX));
-      tilt(rx, ry);
-    });
-  }
-
-  if (typeof DeviceOrientationEvent !== 'undefined' &&
-      typeof DeviceOrientationEvent.requestPermission === 'function') {
-    // iOS: expose for password button to call synchronously in gesture context
-    window.__requestGyro = () =>
-      DeviceOrientationEvent.requestPermission()
-        .then(s => { if (s === 'granted') attachGyro(); })
-        .catch(() => {});
-  } else if (window.DeviceOrientationEvent) {
-    attachGyro();
-  }
 })();
 
 // ── Password gate ─────────────────────────────────────────────────────────────
@@ -712,11 +689,7 @@ slotRight.addEventListener('click', () => { if (!dragging) navigate(1); });
       sessionStorage.setItem('puckilander_unlocked', '1');
       document.body.classList.remove('locked');
       overlay.classList.add('hidden');
-      setTimeout(() => {
-        overlay.remove();
-        // fallback: request gyro on first touch after overlay gone (covers Enter-key unlock)
-        document.addEventListener('touchstart', () => window.__requestGyro?.(), { once: true, passive: true });
-      }, 660);
+      setTimeout(() => overlay.remove(), 660);
     } else {
       errEl.classList.add('show');
       input.value = '';
@@ -724,11 +697,8 @@ slotRight.addEventListener('click', () => { if (!dragging) navigate(1); });
     }
   }
 
-  document.getElementById('pw-btn').addEventListener('click', () => {
-    window.__requestGyro?.(); // synchronous — must be before any await
-    checkPw();
-  });
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') { window.__requestGyro?.(); checkPw(); } });
+  document.getElementById('pw-btn').addEventListener('click', checkPw);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') checkPw(); });
 })();
 
 // ── Floating sparkles ─────────────────────────────────────────────────────────
