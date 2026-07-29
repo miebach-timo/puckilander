@@ -151,9 +151,21 @@ html, body {
    Deliberately not a native <select>: the iOS picker wheel can't be styled and
    would break the glass look. Colours are white-alpha only, so the pill reads
    correctly on every season background without needing theme tokens. */
+.header-tools {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; margin-top: 9px;
+}
 .season-picker {
-  position: relative; display: inline-block; margin-top: 9px;
+  position: relative; display: inline-block;
   touch-action: manipulation; /* body sets touch-action:none — re-enable taps */
+}
+.season-btn-icon { padding: 6px 11px; font-size: .82rem; }
+.season-menu-wide { width: 216px; }
+.season-note {
+  padding: 8px 12px 4px;
+  font-family: 'Trebuchet MS', sans-serif; font-size: .68rem; line-height: 1.45;
+  color: rgba(255,255,255,.9); text-shadow: var(--counter-shadow);
+  white-space: normal; text-align: left;
 }
 .season-btn {
   display: flex; align-items: center; gap: 7px;
@@ -528,11 +540,22 @@ body.locked .day-counter { visibility: hidden; }
 <header class="header">
   <div class="header-name">Puckilander</div>
   <div class="header-date" id="headerDate"></div>
-  <div class="season-picker" id="seasonPicker">
-    <button class="season-btn" id="seasonBtn" aria-haspopup="listbox" aria-expanded="false">
-      <span id="seasonBtnLabel"></span><span class="season-caret">▾</span>
-    </button>
-    <div class="season-menu" id="seasonMenu" role="listbox" aria-label="Season wählen"></div>
+  <div class="header-tools">
+    <div class="season-picker" id="seasonPicker">
+      <button class="season-btn" id="seasonBtn" aria-haspopup="listbox" aria-expanded="false">
+        <span id="seasonBtnLabel"></span><span class="season-caret">▾</span>
+      </button>
+      <div class="season-menu" id="seasonMenu" role="listbox" aria-label="Season wählen"></div>
+    </div>
+    <div class="season-picker" id="resetPicker">
+      <button class="season-btn season-btn-icon" id="resetBtn"
+              aria-haspopup="dialog" aria-expanded="false" aria-label="Neu starten und mischen">🎲</button>
+      <div class="season-menu season-menu-wide" id="resetMenu" role="dialog" aria-label="Neu starten">
+        <div class="season-note">Diese Season neu starten und die Karten neu mischen? Ab heute wieder eine Karte pro Tag.</div>
+        <button class="season-option" id="resetYes" type="button">🎲 Ja, neu mischen</button>
+        <button class="season-option" id="resetNo"  type="button">Abbrechen</button>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -556,7 +579,6 @@ body.locked .day-counter { visibility: hidden; }
 
 <script>
 // ── Cards data ────────────────────────────────────────────────────────────────
-const START_DATE = new Date('2026-06-24T00:00:00');
 const CARDS_LOVE = [
   { emoji:'🌸', title:'Unser kleines Leben',          msg:'Ich liebe unser kleines Leben, because you\'re smol.' },
   { emoji:'🍋', title:'Spaßi Getränki',               msg:'When life gives you lemons, machen wir ein spaßi getränki, weil du es verdient hast.' },
@@ -644,14 +666,10 @@ const GIF_QUERIES_LOVE = {
 };
 
 // ── Seasons ───────────────────────────────────────────────────────────────────
-// Both seasons run on the same START_DATE and unlock rhythm.
-// `legacyKeys` keeps season 1 on the original unprefixed storage keys so
-// already-revealed cards and cached GIFs survive this change. Every other
-// season gets its own namespace — otherwise card 5 of one season would inherit
-// the reveal flag and GIF of card 5 of the other.
+// Each season keeps its own namespace in localStorage — otherwise day 5 of one
+// season would inherit the reveal flag and GIF of day 5 of the other.
 const SEASONS = [
   { id:'love',    label:'💌 Für dich', theme:'rose', themeColor:'#FF6EC7',
-    legacyKeys:true, autoRevealPast:true,
     cards:CARDS_LOVE,    gifQueries:GIF_QUERIES_LOVE, gifFallback:'cute kawaii pink' },
   { id:'animals', label:'🦥 Tierwelt', theme:'jade', themeColor:'#3FC79A',
     cards:CARDS_ANIMALS, gifFallback:'cute animal nature' },
@@ -659,19 +677,50 @@ const SEASONS = [
 const SEASON_KEY  = 'puckilander_season';
 let   currentSeason = SEASONS.find(s => s.id === localStorage.getItem(SEASON_KEY)) || SEASONS[0];
 
-// ── Date setup ────────────────────────────────────────────────────────────────
-const now     = new Date();
-const elapsed = Math.floor((now - START_DATE) / 86400000);
-// Per-season, because seasons may differ in length even on a shared rhythm.
-function activeIdxFor(season) {
-  return Math.min(Math.max(elapsed, 0), season.cards.length - 1);
-}
-
+// ── Advent-calendar clock ─────────────────────────────────────────────────────
+// A season starts the day it is first opened and unlocks one card per day from
+// there. The start date is stored rather than hardcoded, so the reset button
+// can simply re-stamp it to today and the calendar runs again from day 1.
+const now  = new Date();
 const DAYS   = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
 const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 document.getElementById('headerDate').textContent =
   `${DAYS[now.getDay()]}, ${now.getDate()}. ${MONTHS[now.getMonth()]}`;
-const START_LABEL = `✨ Startet am ${START_DATE.getDate()}. ${MONTHS[START_DATE.getMonth()]}`;
+
+const startKey = s => `puckilander_${s.id}_start`;
+const orderKey = s => `puckilander_${s.id}_order`;
+const stamp    = d => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+const today    = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); };
+
+function parseStamp(str) {
+  const [y, m, d] = String(str).split('-').map(Number);
+  return (y && m && d) ? new Date(y, m - 1, d) : null;
+}
+// Midnight-to-midnight, rounded: a DST change makes a "day" 23 or 25 hours
+// long, which a plain floor-divide would turn into an off-by-one.
+function startOf(season) {
+  let start = parseStamp(localStorage.getItem(startKey(season)));
+  if (!start) { start = today(); localStorage.setItem(startKey(season), stamp(start)); }
+  return start;
+}
+function activeIdxFor(season) {
+  const days = Math.round((today() - startOf(season)) / 86400000);
+  return Math.min(Math.max(days, 0), season.cards.length - 1);
+}
+
+// Day N of the calendar shows card `orderFor(season)[N]`. Without a stored
+// order the cards run in their authored sequence; the reset button shuffles it.
+function orderFor(season) {
+  if (!season._order) {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(orderKey(season))); } catch (e) { /* korrupt → neu */ }
+    const valid = Array.isArray(saved) && saved.length === season.cards.length &&
+                  saved.every(n => Number.isInteger(n) && n >= 0 && n < season.cards.length) &&
+                  new Set(saved).size === saved.length;
+    season._order = valid ? saved : season.cards.map((_, i) => i);
+  }
+  return season._order;
+}
 
 // ── Carousel state ────────────────────────────────────────────────────────────
 const stage      = document.getElementById('cardsStage');
@@ -681,22 +730,11 @@ const slotRight  = document.getElementById('slotRight');
 let   viewIdx    = activeIdxFor(currentSeason);
 let   navigating = false;
 
-function storeKey(season, i) {
-  return season.legacyKeys ? `puckilander_revealed_${i}`
-                           : `puckilander_${season.id}_revealed_${i}`;
-}
-function gifKey(season, i) {
-  return season.legacyKeys ? `puckilander_gif_${i}`
-                           : `puckilander_${season.id}_gif_${i}`;
-}
-// autoRevealPast: season 1 counts every past day as already seen, because its
-// cards were lived through one per day. A season added later would otherwise
-// arrive fully open — all its days are already in the past — so it opts out and
-// every unlocked card stays face down until it is actually tapped.
-function isRevealed(season, i) {
-  if (season.autoRevealPast && i < activeIdxFor(season)) return true;
-  return !!localStorage.getItem(storeKey(season, i));
-}
+// Reveals are keyed by calendar day, GIFs by card — a shuffle moves cards
+// between days, so a GIF stays with its card while the day keeps its own state.
+function storeKey(season, day)     { return `puckilander_${season.id}_day_${day}`; }
+function gifKey(season, cardIdx)   { return `puckilander_${season.id}_gif_${cardIdx}`; }
+function isRevealed(season, day)   { return !!localStorage.getItem(storeKey(season, day)); }
 
 // German "in N days" countdown for locked cards
 const NUM = ['','einem','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn',
@@ -709,23 +747,24 @@ function availIn(diff) {
 }
 
 // Build and fill one slot for a given card index
-function fillSlot(slot, cardIdx) {
+function fillSlot(slot, day) {
   slot.innerHTML = '';
   slot.classList.remove('revealed', 'entering');
 
   const season = currentSeason;
-  if (cardIdx < 0 || cardIdx >= season.cards.length) {
+  if (day < 0 || day >= season.cards.length) {
     slot.style.visibility = 'hidden';
     return;
   }
   slot.style.visibility = '';
 
   const activeIdx = activeIdxFor(season);
+  const cardIdx   = orderFor(season)[day];
   const card      = season.cards[cardIdx];
-  const locked    = cardIdx > activeIdx;
-  const revealed  = isRevealed(season, cardIdx);
-  // Any unlocked card that is still face down can be opened — not just today's.
-  // With autoRevealPast off, past cards are face down too and must stay tappable.
+  const locked    = day > activeIdx;
+  const revealed  = isRevealed(season, day);
+  // Any unlocked day that is still face down can be opened — not just today's,
+  // so a day you missed can still be caught up on.
   const openable  = !locked && !revealed;
 
   if (revealed) slot.classList.add('revealed');
@@ -749,12 +788,12 @@ function fillSlot(slot, cardIdx) {
   const front = document.createElement('div');
   front.className = 'face front';
   if (locked) {
-    front.innerHTML = `<div class="front-label">Tag ${cardIdx + 1}</div>
+    front.innerHTML = `<div class="front-label">Tag ${day + 1}</div>
       <span class="front-icon" style="font-size:2.8rem">🔒</span>
-      <div class="front-hint">${availIn(cardIdx - activeIdx)}</div>`;
+      <div class="front-hint">${availIn(day - activeIdx)}</div>`;
   } else {
     front.innerHTML = `<div class="shimmer-bar"></div>
-      <div class="front-label">Tag ${cardIdx + 1}</div>
+      <div class="front-label">Tag ${day + 1}</div>
       <span class="front-icon">✨</span>
       <div class="front-hint">Tippe um zu öffnen</div>`;
   }
@@ -762,7 +801,7 @@ function fillSlot(slot, cardIdx) {
   // Back face
   const back = document.createElement('div');
   back.className = 'face back';
-  back.innerHTML = `<div class="back-day">Tag ${cardIdx + 1}</div>
+  back.innerHTML = `<div class="back-day">Tag ${day + 1}</div>
     <span class="back-emoji">${card.emoji}</span>
     <img class="back-gif" alt="" loading="lazy">
     <div class="back-title">${card.title}</div>
@@ -778,7 +817,7 @@ function fillSlot(slot, cardIdx) {
   // Tap to reveal
   if (openable) {
     flipper.addEventListener('click', function() {
-      localStorage.setItem(storeKey(season, cardIdx), '1');
+      localStorage.setItem(storeKey(season, day), '1');
       flipper.classList.add('flipped');
       slot.classList.add('revealed');
       const ring = slot.querySelector('.sparkle-ring');
@@ -792,7 +831,7 @@ function renderView() {
   fillSlot(slotCenter, viewIdx);
   fillSlot(slotRight,  viewIdx + 1);
   document.getElementById('dayCounter').textContent =
-    elapsed < 0 ? START_LABEL : `Tag ${viewIdx + 1} von ${currentSeason.cards.length}`;
+    `Tag ${viewIdx + 1} von ${currentSeason.cards.length}`;
 }
 
 function navigate(dir) {
@@ -847,7 +886,6 @@ const seasonBtn = document.getElementById('seasonBtn');
 const seasonMenu = document.getElementById('seasonMenu');
 
 function playEntry() {
-  if (elapsed < 0) return;
   slotCenter.classList.remove('entering');
   void slotCenter.offsetWidth; // restart the animation
   slotCenter.classList.add('entering');
@@ -872,9 +910,23 @@ function applySeason(id, { animate = true } = {}) {
   if (animate) playEntry();
 }
 
+// Both header popovers (season list, reset confirm) share this behaviour:
+// only one open at a time, closes on outside click and on Escape.
+const poppers = [];
+function bindPopper(pickerEl, btnEl) {
+  poppers.push({ pickerEl, btnEl });
+  btnEl.addEventListener('click', e => {
+    e.stopPropagation();
+    const willOpen = !pickerEl.classList.contains('open');
+    closeMenu();
+    if (willOpen) { pickerEl.classList.add('open'); btnEl.setAttribute('aria-expanded', 'true'); }
+  });
+}
 function closeMenu() {
-  picker.classList.remove('open');
-  seasonBtn.setAttribute('aria-expanded', 'false');
+  poppers.forEach(p => {
+    p.pickerEl.classList.remove('open');
+    p.btnEl.setAttribute('aria-expanded', 'false');
+  });
 }
 
 SEASONS.forEach(season => {
@@ -891,13 +943,38 @@ SEASONS.forEach(season => {
   seasonMenu.appendChild(opt);
 });
 
-seasonBtn.addEventListener('click', e => {
-  e.stopPropagation();
-  const open = picker.classList.toggle('open');
-  seasonBtn.setAttribute('aria-expanded', String(open));
+// ── Neu starten und mischen ──────────────────────────────────────────────────
+const resetPicker = document.getElementById('resetPicker');
+bindPopper(picker, seasonBtn);
+bindPopper(resetPicker, document.getElementById('resetBtn'));
+
+function shuffled(n) {
+  const a = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function resetSeason(season) {
+  for (let d = 0; d < season.cards.length; d++) localStorage.removeItem(storeKey(season, d));
+  season._order = shuffled(season.cards.length);
+  localStorage.setItem(orderKey(season), JSON.stringify(season._order));
+  localStorage.setItem(startKey(season), stamp(today())); // ab heute wieder Tag 1
+  viewIdx = 0;
+  renderView();
+  playEntry();
+}
+
+document.getElementById('resetYes').addEventListener('click', () => {
+  closeMenu();
+  resetSeason(currentSeason);
 });
+document.getElementById('resetNo').addEventListener('click', closeMenu);
+
 document.addEventListener('click', e => {
-  if (!picker.contains(e.target)) closeMenu();
+  if (!poppers.some(p => p.pickerEl.contains(e.target))) closeMenu();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
 

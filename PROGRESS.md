@@ -45,6 +45,16 @@
 
 ## Erledigt seit letztem Stand
 
+- [x] **Adventskalender-Modus**: kein festes Startdatum mehr im Code
+  - Jede Season merkt sich ihren Start (`puckilander_<id>_start`) und schaltet ab da täglich eine Karte frei
+  - Tagesrechnung von Mitternacht zu Mitternacht und **gerundet**, damit eine Zeitumstellung (23- bzw. 25-Stunden-Tag) keinen Tag verschiebt
+  - Startdatum in der Zukunft (verstellte Uhr) landet auf Tag 1, kaputtes Datum wird neu gestempelt
+- [x] **🎲-Button im Header**: setzt die *aktuelle* Season zurück und mischt sie neu
+  - Fragt vorher nach; die andere Season bleibt unberührt
+  - Ab dem Druck läuft der Kalender wieder ab Tag 1
+  - Kartenreihenfolge liegt in `puckilander_<id>_order`; ohne Eintrag gilt die ursprüngliche Reihenfolge
+  - Aufgedeckt-Status hängt am **Tag**, GIFs an der **Karte** — beim Mischen wandern Karten zwischen Tagen, das GIF bleibt bei seiner Karte
+
 - [x] **Krabbe als Maskottchen**: kleine orange Pixel-Krabbe, die im Puckilander wohnt
   - Läuft am unteren Rand hin und her, klettert auf die Karte, macht Pausen und winkt
   - Auch im Login sichtbar
