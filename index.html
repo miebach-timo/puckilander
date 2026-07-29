@@ -603,7 +603,8 @@ const GIF_QUERIES_LOVE = {
 // season gets its own namespace — otherwise card 5 of one season would inherit
 // the reveal flag and GIF of card 5 of the other.
 const SEASONS = [
-  { id:'love',    label:'💌 Für dich', theme:'rose', themeColor:'#FF6EC7', legacyKeys:true,
+  { id:'love',    label:'💌 Für dich', theme:'rose', themeColor:'#FF6EC7',
+    legacyKeys:true, autoRevealPast:true,
     cards:CARDS_LOVE,    gifQueries:GIF_QUERIES_LOVE, gifFallback:'cute kawaii pink' },
   { id:'animals', label:'🦥 Tierwelt', theme:'jade', themeColor:'#3FC79A',
     cards:CARDS_ANIMALS, gifFallback:'cute animal nature' },
@@ -641,8 +642,13 @@ function gifKey(season, i) {
   return season.legacyKeys ? `puckilander_gif_${i}`
                            : `puckilander_${season.id}_gif_${i}`;
 }
+// autoRevealPast: season 1 counts every past day as already seen, because its
+// cards were lived through one per day. A season added later would otherwise
+// arrive fully open — all its days are already in the past — so it opts out and
+// every unlocked card stays face down until it is actually tapped.
 function isRevealed(season, i) {
-  return i < activeIdxFor(season) || !!localStorage.getItem(storeKey(season, i));
+  if (season.autoRevealPast && i < activeIdxFor(season)) return true;
+  return !!localStorage.getItem(storeKey(season, i));
 }
 
 // German "in N days" countdown for locked cards
@@ -671,15 +677,17 @@ function fillSlot(slot, cardIdx) {
   const card      = season.cards[cardIdx];
   const locked    = cardIdx > activeIdx;
   const revealed  = isRevealed(season, cardIdx);
-  const todayUnrevealed = cardIdx === activeIdx && !revealed;
+  // Any unlocked card that is still face down can be opened — not just today's.
+  // With autoRevealPast off, past cards are face down too and must stay tappable.
+  const openable  = !locked && !revealed;
 
   if (revealed) slot.classList.add('revealed');
 
   // Bob host — floats ring + flip-shell together (only center card animates)
   const bobHost = document.createElement('div');   bobHost.className = 'bob-host';
 
-  // Sparkle ring only for today's unrevealed card
-  if (todayUnrevealed) {
+  // Sparkle ring marks a card as still openable
+  if (openable) {
     const ring = document.createElement('div');
     ring.className = 'sparkle-ring';
     bobHost.appendChild(ring);
@@ -720,8 +728,8 @@ function fillSlot(slot, cardIdx) {
   bobHost.appendChild(shell);
   slot.appendChild(bobHost);
 
-  // Tap to reveal: only today's unrevealed card
-  if (todayUnrevealed) {
+  // Tap to reveal
+  if (openable) {
     flipper.addEventListener('click', function() {
       localStorage.setItem(storeKey(season, cardIdx), '1');
       flipper.classList.add('flipped');
