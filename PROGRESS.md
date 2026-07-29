@@ -3,7 +3,7 @@
 ## Fertig
 
 - [x] Mobile-first Single-File App (`index.html`)
-- [x] 31 Tageskarten mit persönlichen Nachrichten (24. Juni – 24. Juli 2026)
+- [x] 31 Tageskarten pro Season (24. Juni – 24. Juli 2026)
 - [x] Kalender startet 24. Juni 2026 — täglich eine neue Karte
 - [x] Card-Rise Entry Animation (Karte fliegt von unten rein)
 - [x] Flip-Reveal Animation (CSS 3D flip beim Antippen)
@@ -12,13 +12,13 @@
 - [x] Bob Float Animation auf Center-Karte
 - [x] 3-Slot Karussell mit Swipe + Tap Navigation
 - [x] Gesperrte Zukünftige Karten sichtbar aber nicht aufdeckbar
-- [x] Revealed-State in localStorage gespeichert
+- [x] Revealed-State in localStorage gespeichert (pro Season getrennt)
 - [x] Aurora-Hintergrund mit CSS-Animationen (Sky, Clouds, Sparkles) — alleiniger Hintergrund
 - [x] Klipy GIF API — passende GIFs pro Karte auf der Rückseite
   - Lazy loaded, gecacht in localStorage (`puckilander_gif_N`)
   - Key: `tb7vKsBjDQBtMLMD77FjB8RsakHHLZtDY9k64MaCqMIaqFPilvOfgyGjfVBXBryd`
 - [x] Navigations-Jitter behoben (Animationen während Slide eingefroren)
-- [x] 3D Tilt Animation (Gyroscope mobile, Maus desktop) via `#tilt-wrap`
+- [x] 3D Tilt Animation (Maus desktop) via `#tilt-wrap`
 - [x] Header „Puckilander" nicht mehr kursiv
 - [x] iPhone App Icon (`icon.png`, 180×180, 🌸 auf pink/violet Gradient)
   - `<link rel="apple-touch-icon">` + `<meta name="apple-mobile-web-app-title">`
@@ -30,14 +30,14 @@
   - SHA-256 via WebCrypto API, kein Klartext
   - `sessionStorage` — einmal entsperrt bis Tab geschlossen
   - Standardpasswort: `eileen` (Hash in `index.html` bei `PW_HASH` ändern)
-  - Gyro-Permission wird synchron beim Login-Button angefragt (iOS-Anforderung)
-- [x] Center-Karte bleibt im 3D-Raum immer vorne (`translateZ(2px)`)
+- [x] Center-Karte bleibt im 3D-Raum immer vorne (`z-index: 1`)
 
 ---
 
 ## Offene Punkte
 
-- [ ] iOS Home-Screen-Webapp: Safe-Area oben/unten am echten Gerät final bestätigen. Aktueller Stand sollte nahtlos sein (siehe unten); falls noch eine Kante: Werte in `html, body` an die `.sky`-Töne angleichen.
+- [ ] iOS Home-Screen-Webapp: Safe-Area oben/unten am echten Gerät final bestätigen — in **beiden** Seasons. Falls noch eine Kante: `--deep` der jeweiligen Season an die untere `.sky`-Kante angleichen.
+- [ ] Klipy-GIFs am echten Gerät prüfen: `loadCardGif` liest die Antwort im Tenor-Schema (`media_formats.tinygif`), der Host ist aber `api.klipy.com`. Aus der Entwicklungsumgebung nicht testbar (kein Netzzugang). Falls die GIFs nicht laden, ist das ein Altbestand, kein Season-Problem.
 
 ## Entfernt
 
@@ -45,13 +45,22 @@
 
 ## Erledigt seit letztem Stand
 
+- [x] **Season-System**: Dropdown im Header schaltet zwischen Karten-Sets um
+  - `SEASONS`-Registry (`id`, `label`, `theme`, `themeColor`, `cards`); neue Season = ein Eintrag + ein `:root[data-season="…"]`-CSS-Block
+  - Reveal- und GIF-Status pro Season getrennt (`puckilander_<season>_revealed_N`); Season 1 behält ihre alten, unpräfixierten Keys, damit nichts zurückgesetzt wird
+  - Zuletzt gewählte Season wird in `puckilander_season` gemerkt
+  - Eigenes Glas-Dropdown statt `<select>` (natives iOS-Picker-Rad ist nicht stylebar)
+- [x] **Season 2 „Tierwelt"**: 31 Tier-Fakten auf Deutsch, Jade/Sage-Farbwelt
+  - Gleicher Tages-Rhythmus wie Season 1 (gleiches `START_DATE`)
+  - GIF-Suchbegriff steht direkt auf der Karte (`gif`), nicht in einer Emoji-Tabelle
+- [x] Alle Season-Farben als CSS-Custom-Properties in `:root`; kein hartcodierter Farbwert mehr außerhalb der Theme-Blöcke
+- [x] `data-season` sitzt auf `<html>`, nicht `<body>` — sonst bliebe die iOS-Safe-Area in der alten Farbe stehen
 - [x] Login-Screen nutzt denselben Hintergrund wie das Hauptinterface (Overlay transparent, Aurora scheint durch; Vordergrund via `body.locked` ausgeblendet)
 - [x] Tag 4 Text neu: „Mit dir isset einfach schöner, selbst bei 40 Grad und Körperkontakt."
 - [x] Kartentexte Korrekturlauf: Rechtschreib-/Satzzeichenfehler behoben (Tag 6, 9, 12, 13, 18, 19, 20, 21, 24, 25, 31) — bewusst gelassener Slang/Spitznamen (smol, beb, isset, Wallah, frfr …)
-- [x] Durchgängiger Hintergrund ohne Kante: solide Füllfarbe = gemessene untere Aurora-Kante (`#FA90D4`), vertikaler Gradient oben (`#CA73E0`) → unten. Behebt den weißen Rand der iOS-Safe-Area (Volltonfarbe füllt sie, Gradient-Image nicht)
+- [x] Durchgängiger Hintergrund ohne Kante: `html, body` bekommen eine Volltonfarbe (`var(--deep)`), die die iOS-Safe-Area füllt — ein Gradient-Image tut das nicht
 - [x] Sparkle-Ring schwebt jetzt synchron mit der Karte (Bob-Animation auf `.bob-host`, umschließt Ring + Flip-Shell)
 - [x] Lock-Countdown dynamisch: „In einem Tag / In zwei Tagen … verfügbar" statt statisch „Ab morgen verfügbar"
-- [x] Gyro-Effekt auf iPhone funktioniert (Permission-Fix bestätigt)
 - [x] Karten-Overlay-Sync korrigiert (`translateZ(2px)` entfernt → `z-index: 1`)
 - [x] Tag 2 Text + Zitronen-Emoji/GIF (🍋) aktualisiert
 - [x] Repo aufgeräumt: Debug-Screenshots gelöscht, `.gitignore` (`*.png` außer `icon.png`, `.playwright-mcp/`)

@@ -9,10 +9,78 @@
 <title>Puckilander</title>
 
 <style>
+/* ── Theme tokens ────────────────────────────────────
+   :root holds the original rose/violet season. A second season only overrides
+   these values in the body[data-season="…"] block below — no rule outside this
+   section may hardcode a season colour, or switching seasons will leave a
+   stray pink (or green) behind. Gradient geometry lives in the token too, so
+   a theme swaps colours without redesigning the aurora composition. */
 :root {
-  --rose:   #FF6EC7;
-  --violet: #C77DFF;
   --deep:   #3D0040;
+  --ink:    #4A1855;
+  --label-rgb: 138,50,118;
+
+  --sky-layers:
+    radial-gradient(ellipse 70% 55% at 12% 28%,  rgba(255,175,225,.90) 0%, transparent 58%),
+    radial-gradient(ellipse 80% 58% at 88% 10%,  rgba(175,95,255,.80)  0%, transparent 54%),
+    radial-gradient(ellipse 58% 72% at 50% 98%,  rgba(240,125,210,.85) 0%, transparent 52%),
+    radial-gradient(ellipse 92% 38% at 58% 52%,  rgba(195,145,255,.55) 0%, transparent 58%),
+    radial-gradient(ellipse 42% 62% at 22% 78%,  rgba(255,155,215,.68) 0%, transparent 50%),
+    radial-gradient(ellipse 52% 44% at 82% 72%,  rgba(155,75,238,.52)  0%, transparent 50%),
+    linear-gradient(148deg, rgba(248,196,232,.72) 0%, rgba(210,138,246,.72) 25%, rgba(158,88,224,.72) 50%, rgba(212,104,196,.72) 72%, rgba(240,152,216,.72) 100%);
+  --glow-soft: rgba(255,200,240,.18);
+
+  --header-veil: rgba(150,45,190,.38);
+  --title-glow:  0 0 22px rgba(255,110,199,.95), 0 0 52px rgba(200,100,255,.60), 0 2px 9px rgba(80,0,100,.50);
+  --pw-title-glow: 0 0 22px rgba(255,110,199,.9), 0 0 52px rgba(200,100,255,.6);
+  --pw-error-color: rgba(255,220,240,.9);
+
+  --ring-gradient: conic-gradient(from 0deg,
+    #FF6EC7, #FFB8EA, #C77DFF, #E8A0FF, #FF6EC7, #FFB8EA, #C77DFF, #FF6EC7);
+  --ring-glow: 0 0 18px rgba(255,110,199,.65), 0 0 42px rgba(200,120,255,.40), 0 0 70px rgba(200,120,255,.18);
+
+  --card-front-bg: linear-gradient(148deg,
+    rgba(248,225,255,.97) 0%, rgba(255,205,243,.93) 50%, rgba(235,200,255,.95) 100%);
+  --card-back-bg: linear-gradient(148deg, rgba(255,253,255,.99) 0%, rgba(255,225,252,.93) 100%);
+  --card-shadow: 0 20px 52px rgba(155,55,180,.28), 0 4px 14px rgba(120,40,160,.14), inset 0 1.5px 0 rgba(255,255,255,1);
+  --icon-glow: drop-shadow(0 0 16px rgba(200,100,220,.55));
+  --counter-shadow: 0 1px 4px rgba(120,40,160,.5);
+}
+
+/* Season 2 — jade / sage. Same geometry and alphas as above, green hues.
+   ponytail: data-season sits on <html>, NOT <body> — `html` paints the canvas
+   behind the safe-areas, so a --deep override scoped to body would leave the
+   old purple showing through the iOS standalone seam. */
+:root[data-season="jade"] {
+  --deep: #06302A;
+  --ink:  #14342C;
+  --label-rgb: 26,92,74;
+
+  --sky-layers:
+    radial-gradient(ellipse 70% 55% at 12% 28%,  rgba(150,235,205,.90) 0%, transparent 58%),
+    radial-gradient(ellipse 80% 58% at 88% 10%,  rgba(90,205,200,.80)  0%, transparent 54%),
+    radial-gradient(ellipse 58% 72% at 50% 98%,  rgba(110,215,170,.85) 0%, transparent 52%),
+    radial-gradient(ellipse 92% 38% at 58% 52%,  rgba(150,215,190,.55) 0%, transparent 58%),
+    radial-gradient(ellipse 42% 62% at 22% 78%,  rgba(160,230,195,.68) 0%, transparent 50%),
+    radial-gradient(ellipse 52% 44% at 82% 72%,  rgba(58,175,150,.52)  0%, transparent 50%),
+    linear-gradient(148deg, rgba(226,246,234,.72) 0%, rgba(168,225,200,.72) 25%, rgba(88,186,160,.72) 50%, rgba(122,206,172,.72) 72%, rgba(178,232,206,.72) 100%);
+  --glow-soft: rgba(200,245,225,.18);
+
+  --header-veil: rgba(20,120,95,.38);
+  --title-glow:  0 0 22px rgba(90,220,180,.95), 0 0 52px rgba(140,225,190,.60), 0 2px 9px rgba(0,58,44,.50);
+  --pw-title-glow: 0 0 22px rgba(90,220,180,.9), 0 0 52px rgba(140,225,190,.6);
+  --pw-error-color: rgba(220,255,238,.9);
+
+  --ring-gradient: conic-gradient(from 0deg,
+    #3FC79A, #A7E8C8, #6FB89A, #C9E8D4, #3FC79A, #A7E8C8, #6FB89A, #3FC79A);
+  --ring-glow: 0 0 18px rgba(63,199,154,.65), 0 0 42px rgba(120,210,175,.40), 0 0 70px rgba(120,210,175,.18);
+
+  --card-front-bg: linear-gradient(148deg,
+    rgba(233,250,241,.97) 0%, rgba(203,238,220,.93) 50%, rgba(214,242,228,.95) 100%);
+  --card-back-bg: linear-gradient(148deg, rgba(252,255,253,.99) 0%, rgba(216,242,229,.93) 100%);
+  --card-shadow: 0 20px 52px rgba(20,110,85,.28), 0 4px 14px rgba(15,90,70,.14), inset 0 1.5px 0 rgba(255,255,255,1);
+  --icon-glow: drop-shadow(0 0 16px rgba(70,195,155,.55));
+  --counter-shadow: 0 1px 4px rgba(15,90,70,.5);
 }
 
 *, *::before, *::after {
@@ -33,14 +101,7 @@ html, body {
 /* ── Aurora sky ─────────────────────────────────── */
 .sky {
   position: fixed; inset: 0; width: 100vw; height: 100vh;
-  background:
-    radial-gradient(ellipse 70% 55% at 12% 28%,  rgba(255,175,225,.90) 0%, transparent 58%),
-    radial-gradient(ellipse 80% 58% at 88% 10%,  rgba(175,95,255,.80)  0%, transparent 54%),
-    radial-gradient(ellipse 58% 72% at 50% 98%,  rgba(240,125,210,.85) 0%, transparent 52%),
-    radial-gradient(ellipse 92% 38% at 58% 52%,  rgba(195,145,255,.55) 0%, transparent 58%),
-    radial-gradient(ellipse 42% 62% at 22% 78%,  rgba(255,155,215,.68) 0%, transparent 50%),
-    radial-gradient(ellipse 52% 44% at 82% 72%,  rgba(155,75,238,.52)  0%, transparent 50%),
-    linear-gradient(148deg, rgba(248,196,232,.72) 0%, rgba(210,138,246,.72) 25%, rgba(158,88,224,.72) 50%, rgba(212,104,196,.72) 72%, rgba(240,152,216,.72) 100%);
+  background: var(--sky-layers);
   animation: sky-breath 14s ease-in-out infinite alternate;
 }
 @keyframes sky-breath {
@@ -56,7 +117,7 @@ html, body {
 .cc { width:265px; height:155px; top:14%;   right:10%; border-radius:72% 32% 62% 52%/52% 62% 42% 72%; animation:da 18s -8s  ease-in-out infinite; }
 .cd { width:415px; height:218px; bottom:-1%;left:6%;   border-radius:42% 72% 52% 62%/72% 52% 62% 42%; animation:db 24s -18s ease-in-out infinite; }
 .ce { width:208px; height:125px; top:64%;   left:26%;  border-radius:62% 52% 42% 72%/52% 42% 62% 52%; animation:da 20s -6s  ease-in-out infinite; }
-.cglow { width:500px; height:300px; top:50%; left:50%; transform:translate(-50%,-50%); border-radius:50%; background:radial-gradient(ellipse, rgba(255,200,240,.18) 0%, transparent 70%); filter:blur(65px); animation:gp 9s ease-in-out infinite alternate; }
+.cglow { width:500px; height:300px; top:50%; left:50%; transform:translate(-50%,-50%); border-radius:50%; background:radial-gradient(ellipse, var(--glow-soft) 0%, transparent 70%); filter:blur(65px); animation:gp 9s ease-in-out infinite alternate; }
 @keyframes da { 0%,100%{transform:translate(0,0)} 22%{transform:translate(19px,-17px)} 46%{transform:translate(9px,8px)} 72%{transform:translate(-15px,-11px)} }
 @keyframes db { 0%,100%{transform:translate(0,0)} 26%{transform:translate(-22px,13px)} 52%{transform:translate(11px,-9px)} 78%{transform:translate(16px,11px)} }
 @keyframes gp { from{transform:translate(-50%,-50%) scale(1);opacity:.6} to{transform:translate(-50%,-50%) scale(1.18);opacity:1} }
@@ -75,23 +136,71 @@ html, body {
   position:fixed; top:0; left:0; right:0; z-index:30;
   padding: calc(env(safe-area-inset-top,0px) + 22px) 24px 16px;
   text-align:center;
-  background:linear-gradient(to bottom, rgba(150,45,190,.38) 0%, transparent 100%);
+  background:linear-gradient(to bottom, var(--header-veil) 0%, transparent 100%);
 }
 .header-name {
   font-size:clamp(1.55rem,6.5vw,2rem); color:#fff; letter-spacing:.1em;
-  text-shadow: 0 0 22px rgba(255,110,199,.95), 0 0 52px rgba(200,100,255,.60), 0 2px 9px rgba(80,0,100,.50);
+  text-shadow: var(--title-glow);
 }
 .header-date {
   font-size:.72rem; color:rgba(255,255,255,.75); letter-spacing:.22em;
   text-transform:uppercase; font-family:'Trebuchet MS',sans-serif; margin-top:5px;
 }
 
+/* ── Season picker ───────────────────────────────────
+   Deliberately not a native <select>: the iOS picker wheel can't be styled and
+   would break the glass look. Colours are white-alpha only, so the pill reads
+   correctly on every season background without needing theme tokens. */
+.season-picker {
+  position: relative; display: inline-block; margin-top: 9px;
+  touch-action: manipulation; /* body sets touch-action:none — re-enable taps */
+}
+.season-btn {
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(255,255,255,.18);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,.44); border-radius: 50px;
+  padding: 6px 14px;
+  font-family: 'Trebuchet MS', sans-serif; font-size: .7rem;
+  letter-spacing: .1em; color: rgba(255,255,255,.92);
+  text-shadow: var(--counter-shadow);
+  cursor: pointer; white-space: nowrap;
+  transition: background .2s;
+}
+.season-btn:active { background: rgba(255,255,255,.32); }
+.season-caret { font-size: .6rem; opacity: .8; transition: transform .25s ease; }
+.season-picker.open .season-caret { transform: rotate(180deg); }
+
+.season-menu {
+  position: absolute; top: calc(100% + 7px); left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  min-width: 100%;
+  background: rgba(255,255,255,.20);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,.44); border-radius: 18px;
+  padding: 5px; display: flex; flex-direction: column; gap: 2px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .22s ease, transform .22s ease;
+}
+.season-picker.open .season-menu {
+  opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0);
+}
+.season-option {
+  background: none; border: none; border-radius: 14px;
+  padding: 8px 16px; white-space: nowrap; cursor: pointer;
+  font-family: 'Trebuchet MS', sans-serif; font-size: .72rem;
+  letter-spacing: .08em; color: rgba(255,255,255,.92);
+  text-shadow: var(--counter-shadow); text-align: left;
+}
+.season-option[aria-selected="true"] { background: rgba(255,255,255,.26); }
+.season-option:active { background: rgba(255,255,255,.34); }
+
 /* ── Scene ────────────────────────────────────────── */
 .scene {
   position: fixed; inset: 0;
   display: flex; align-items: center; justify-content: center;
   z-index: 10;
-  padding-top: 90px;
+  padding-top: 126px; /* header grew by the season picker row */
   padding-bottom: 60px;
   overflow: hidden;
 }
@@ -133,15 +242,9 @@ html, body {
   position: absolute;
   inset: -3px;
   border-radius: 32px;
-  background: conic-gradient(
-    from 0deg,
-    #FF6EC7, #FFB8EA, #C77DFF, #E8A0FF, #FF6EC7, #FFB8EA, #C77DFF, #FF6EC7
-  );
+  background: var(--ring-gradient);
   z-index: 0;
-  box-shadow:
-    0 0 18px rgba(255,110,199,.65),
-    0 0 42px rgba(200,120,255,.40),
-    0 0 70px rgba(200,120,255,.18);
+  box-shadow: var(--ring-glow);
   transition: opacity 0.5s ease;
 }
 
@@ -186,17 +289,9 @@ html, body {
 
 /* ── Front face (unrevealed) ──────────────────────── */
 .front {
-  background: linear-gradient(
-    148deg,
-    rgba(248,225,255,.97) 0%,
-    rgba(255,205,243,.93) 50%,
-    rgba(235,200,255,.95) 100%
-  );
+  background: var(--card-front-bg);
   border: 1.5px solid rgba(255,255,255,.90);
-  box-shadow:
-    0 20px 52px rgba(155,55,180,.28),
-    0 4px 14px rgba(120,40,160,.14),
-    inset 0 1.5px 0 rgba(255,255,255,1);
+  box-shadow: var(--card-shadow);
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   gap: 16px;
@@ -233,11 +328,11 @@ html, body {
 .front-label {
   font-family: 'Trebuchet MS', sans-serif;
   font-size: .68rem; letter-spacing: .28em; text-transform: uppercase;
-  color: rgba(138,50,118,.50);
+  color: rgba(var(--label-rgb),.50);
 }
 .front-icon {
   font-size: 3.6rem; line-height: 1;
-  filter: drop-shadow(0 0 16px rgba(200,100,220,.55));
+  filter: var(--icon-glow);
   animation: icon-pulse 3s ease-in-out infinite;
 }
 @keyframes icon-pulse {
@@ -245,19 +340,16 @@ html, body {
   50%    { transform: scale(1.15) rotate(4deg); }
 }
 .front-hint {
-  font-size: .74rem; color: rgba(138,50,118,.40);
+  font-size: .74rem; color: rgba(var(--label-rgb),.40);
   font-style: italic; letter-spacing: .04em;
 }
 
 /* ── Back face (revealed content) ─────────────────── */
 .back {
   transform: rotateY(180deg);
-  background: linear-gradient(148deg, rgba(255,253,255,.99) 0%, rgba(255,225,252,.93) 100%);
+  background: var(--card-back-bg);
   border: 1.5px solid rgba(255,255,255,.90);
-  box-shadow:
-    0 20px 52px rgba(155,55,180,.28),
-    0 4px 14px rgba(120,40,160,.14),
-    inset 0 1.5px 0 rgba(255,255,255,1);
+  box-shadow: var(--card-shadow);
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   padding: 22px 20px 20px;
@@ -266,7 +358,7 @@ html, body {
 .back-day {
   font-family: 'Trebuchet MS', sans-serif;
   font-size: .66rem; letter-spacing: .28em; text-transform: uppercase;
-  color: rgba(138,50,118,.52);
+  color: rgba(var(--label-rgb),.52);
 }
 .back-emoji {
   font-size: 3.4rem; line-height: 1;
@@ -292,7 +384,7 @@ html, body {
 }
 .back-gif.loaded { opacity: 1; }
 .back-msg {
-  font-size: .74rem; color: #4A1855;
+  font-size: .74rem; color: var(--ink);
   line-height: 1.58; text-align: center;
   display: -webkit-box;
   -webkit-line-clamp: 4;
@@ -313,7 +405,7 @@ html, body {
   padding: 7px 20px;
   font-family: 'Trebuchet MS', sans-serif; font-size: .7rem;
   letter-spacing: .14em; color: rgba(255,255,255,.88);
-  text-shadow: 0 1px 4px rgba(120,40,160,.5); white-space: nowrap;
+  text-shadow: var(--counter-shadow); white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -338,7 +430,7 @@ body.locked .day-counter { visibility: hidden; }
 #pw-overlay .pw-title {
   font-family: Georgia, serif; font-size: 2rem; color: #fff;
   letter-spacing: .1em;
-  text-shadow: 0 0 22px rgba(255,110,199,.9), 0 0 52px rgba(200,100,255,.6);
+  text-shadow: var(--pw-title-glow);
 }
 #pw-overlay .pw-sub {
   font-family: 'Trebuchet MS', sans-serif; font-size: .75rem;
@@ -365,7 +457,7 @@ body.locked .day-counter { visibility: hidden; }
 #pw-btn:active { background: rgba(255,255,255,.4); }
 #pw-error {
   font-family: 'Trebuchet MS', sans-serif; font-size: .72rem;
-  color: rgba(255,220,240,.9); letter-spacing: .1em;
+  color: var(--pw-error-color); letter-spacing: .1em;
   opacity: 0; transition: opacity .3s;
 }
 #pw-error.show { opacity: 1; }
@@ -394,6 +486,12 @@ body.locked .day-counter { visibility: hidden; }
 <header class="header">
   <div class="header-name">Puckilander</div>
   <div class="header-date" id="headerDate"></div>
+  <div class="season-picker" id="seasonPicker">
+    <button class="season-btn" id="seasonBtn" aria-haspopup="listbox" aria-expanded="false">
+      <span id="seasonBtnLabel"></span><span class="season-caret">▾</span>
+    </button>
+    <div class="season-menu" id="seasonMenu" role="listbox" aria-label="Season wählen"></div>
+  </div>
 </header>
 
 <!-- Main scene -->
@@ -412,7 +510,7 @@ body.locked .day-counter { visibility: hidden; }
 <script>
 // ── Cards data ────────────────────────────────────────────────────────────────
 const START_DATE = new Date('2026-06-24T00:00:00');
-const CARDS = [
+const CARDS_LOVE = [
   { emoji:'🌸', title:'Unser kleines Leben',          msg:'Ich liebe unser kleines Leben, because you\'re smol.' },
   { emoji:'🍋', title:'Spaßi Getränki',               msg:'When life gives you lemons, machen wir ein spaßi getränki, weil du es verdient hast.' },
   { emoji:'🌈', title:'Jedes Mal wieder',             msg:'Ich würde mich immer wieder für dich entscheiden, stinker.' },
@@ -446,26 +544,106 @@ const CARDS = [
   { emoji:'💌', title:'My first and my last',         msg:'My first and my last love.' },
 ];
 
+// Season 2 — one animal fact per day of the month. `gif` is the Klipy search
+// term for that card; unlike season 1 it lives on the card instead of an
+// emoji lookup table, so emojis may repeat without sharing a GIF query.
+const CARDS_ANIMALS = [
+  { emoji:'🐙', title:'Drei Herzen',          gif:'octopus swimming ocean',   msg:'Ein Oktopus hat drei Herzen. Zwei davon setzen aus, wenn er schwimmt, deshalb kriecht er lieber über den Meeresboden.' },
+  { emoji:'🦥', title:'Einmal pro Woche',     gif:'sloth slow moving tree',   msg:'Faultiere klettern nur etwa einmal die Woche vom Baum runter, um aufs Klo zu gehen. Alles andere erledigen sie oben.' },
+  { emoji:'🐧', title:'Der schönste Kiesel',  gif:'gentoo penguin waddling',  msg:'Eselspinguine suchen ihrer Auserwählten den glattesten Kieselstein, den sie finden können, und legen ihn ihr vor die Füße.' },
+  { emoji:'🦦', title:'Händchen halten',      gif:'sea otter floating',       msg:'Seeotter halten sich im Schlaf an den Pfoten fest, damit die Strömung sie nicht auseinandertreibt.' },
+  { emoji:'🐝', title:'Tanzende Wegbeschreibung', gif:'bee flower pollen',    msg:'Bienen erklären sich mit einem Schwänzeltanz gegenseitig Richtung und Entfernung zur Blüte. Der Winkel zeigt den Sonnenstand an.' },
+  { emoji:'🐘', title:'Beide Füße am Boden',  gif:'elephant herd walking',    msg:'Elefanten sind die einzigen Säugetiere, die nicht springen können. Es ist immer mindestens ein Fuß am Boden.' },
+  { emoji:'🦩', title:'Rosa durchs Essen',    gif:'flamingo standing pink',   msg:'Flamingos kommen grau zur Welt. Das Rosa kommt erst durch die Krebstiere und Algen, die sie fressen.' },
+  { emoji:'🐨', title:'Eigener Fingerabdruck', gif:'koala eucalyptus tree',   msg:'Koalas haben Fingerabdrücke, die denen von Menschen so ähnlich sind, dass man sie unter dem Mikroskop verwechseln kann.' },
+  { emoji:'🦉', title:'Dreiviertelkreis',     gif:'owl turning head',         msg:'Eulen können ihre Augen nicht bewegen, dafür den Kopf um etwa 270 Grad drehen. Zusätzliche Halswirbel machen es möglich.' },
+  { emoji:'🦈', title:'Älter als Bäume',      gif:'shark swimming reef',      msg:'Haie schwimmen seit rund 400 Millionen Jahren durch die Meere. Sie waren also schon da, bevor es Bäume gab.' },
+  { emoji:'🐬', title:'Namen aus Pfiffen',    gif:'dolphin jumping water',    msg:'Delfine geben sich selbst einen Signaturpfiff, quasi einen Namen. Andere Delfine rufen sie damit gezielt.' },
+  { emoji:'🦒', title:'Sieben wie bei uns',   gif:'giraffe eating leaves',    msg:'Eine Giraffe hat genau so viele Halswirbel wie du: sieben. Sie sind nur jeweils ungefähr 25 Zentimeter lang.' },
+  { emoji:'🐿', title:'Vergessliche Förster', gif:'squirrel eating nut',      msg:'Eichhörnchen vergessen einen großen Teil ihrer vergrabenen Nüsse. Aus dem Vergessenen wachsen ganze Wälder.' },
+  { emoji:'🐌', title:'Tausende Zähne',       gif:'snail crawling slow',      msg:'Schnecken haben eine Raspelzunge mit teils über zehntausend winzigen Zähnchen. Damit schaben sie ihr Essen ab.' },
+  { emoji:'🦇', title:'Die einzigen Flieger', gif:'bat flying night',         msg:'Fledermäuse sind die einzigen Säugetiere, die wirklich fliegen können. Alle anderen gleiten bestenfalls.' },
+  { emoji:'🐳', title:'Herz wie ein Kleinwagen', gif:'blue whale ocean',      msg:'Das Herz eines Blauwals wiegt rund 180 Kilo. Sein Herzschlag ist noch aus mehreren Kilometern Entfernung messbar.' },
+  { emoji:'🦋', title:'Schmecken mit den Füßen', gif:'butterfly wings flying', msg:'Schmetterlinge schmecken mit den Füßen. Sie landen auf einem Blatt und wissen sofort, ob es das richtige ist.' },
+  { emoji:'🐜', title:'Kleine Kraftpakete',   gif:'ants carrying leaf',       msg:'Ameisen tragen bis zum Fünfzigfachen ihres eigenen Gewichts. Umgerechnet wäre das ein Mensch mit einem Kleinbus auf dem Rücken.' },
+  { emoji:'🦘', title:'Nur vorwärts',         gif:'kangaroo hopping',         msg:'Kängurus können wegen ihrer Hinterbeine und des dicken Schwanzes nicht rückwärts gehen. Es geht immer nur nach vorne.' },
+  { emoji:'🐔', title:'Hundert Gesichter',    gif:'chicken walking farm',     msg:'Hühner erkennen und merken sich über hundert verschiedene Gesichter, von Artgenossen genauso wie von Menschen.' },
+  { emoji:'🪼', title:'Zurück auf Anfang',    gif:'jellyfish glowing water',  msg:'Die Qualle Turritopsis dohrnii kann sich bei Stress in ihr Jugendstadium zurückverwandeln. Theoretisch endlos oft.' },
+  { emoji:'🐸', title:'Trinken durch die Haut', gif:'frog sitting leaf',      msg:'Frösche trinken nicht mit dem Maul. Sie nehmen Wasser über eine Hautstelle am Bauch auf, das sogenannte Trinkfleck.' },
+  { emoji:'🦫', title:'Zähne aus Eisen',      gif:'beaver building dam',      msg:'Biberzähne sind orange, weil Eisen im Zahnschmelz steckt. Das macht sie hart genug, um Bäume zu fällen, und sie wachsen ständig nach.' },
+  { emoji:'🐻', title:'Acht Schläge',         gif:'bear walking forest',      msg:'Im Winterschlaf sinkt der Puls eines Bären auf etwa acht Schläge pro Minute. Aufwachen kann trotzdem Minuten dauern.' },
+  { emoji:'🦜', title:'Wortschatz mit Ansage', gif:'parrot talking colorful', msg:'Der Graupapagei Alex lernte über hundert Wörter und konnte Farben und Formen benennen. Sein letzter Satz war „You be good, I love you".' },
+  { emoji:'🐞', title:'Punkte sind kein Alter', gif:'ladybug on leaf',        msg:'Die Punkte eines Marienkäfers verraten nicht sein Alter, sondern die Art. Sie sind schon beim Schlüpfen vollzählig.' },
+  { emoji:'🐢', title:'Älter als jeder Zoo',  gif:'giant tortoise walking',   msg:'Galapagos-Riesenschildkröten werden über 150 Jahre alt. Manche heute lebende Tiere kennen noch das 19. Jahrhundert.' },
+  { emoji:'🦭', title:'Schlafen im Stehen',   gif:'seal swimming underwater', msg:'Robben schlafen im Wasser, indem sie senkrecht treiben und nur die Nase rausstrecken. Das nennt man Flaschenstellung.' },
+  { emoji:'🐺', title:'Heulen als Steckbrief', gif:'wolf howling',            msg:'Jeder Wolf hat eine eigene Heulstimme. Rudel erkennen einzelne Mitglieder auf mehrere Kilometer Entfernung daran.' },
+  { emoji:'🦡', title:'Furchtlos per Definition', gif:'honey badger animal',  msg:'Der Honigdachs steht im Guinness-Buch als furchtlosestes Tier. Seine lose Haut lässt ihn sich im Griff eines Angreifers umdrehen.' },
+  { emoji:'🦓', title:'Streifen gegen Bremsen', gif:'zebra herd savanna',     msg:'Zebrastreifen sind so einzigartig wie Fingerabdrücke und verwirren obendrein Bremsen, die auf gestreiftem Fell kaum landen.' },
+];
+
+const GIF_QUERIES_LOVE = {
+  '🌸':'pink flowers cute aesthetic','🦋':'butterfly cute pastel','🍋':'lemon drink cute kawaii',
+  '🌈':'rainbow colorful cute','💕':'pink hearts love cute',
+  '🌙':'moon stars dreamy','⭐':'stars sparkle glitter',
+  '🍀':'lucky clover cute','🦄':'unicorn rainbow cute',
+  '🌺':'tropical flower pink cute','💫':'sparkle magic glitter',
+  '🌷':'pink tulip flower cute','🎀':'pink bow ribbon cute',
+  '🌊':'ocean waves soft pastel','✨':'glitter sparkle cute',
+  '🍓':'strawberry cute kawaii','🌻':'sunflower cute happy',
+  '💎':'diamond sparkle bling','🎶':'music notes dancing cute',
+  '🌟':'star shining sparkle','💝':'pink heart love cute',
+  '💖':'glitter heart pink','🧚':'fairy magic wings cute',
+  '🫧':'bubbles soft pastel',
+};
+
+// ── Seasons ───────────────────────────────────────────────────────────────────
+// Both seasons run on the same START_DATE and unlock rhythm.
+// `legacyKeys` keeps season 1 on the original unprefixed storage keys so
+// already-revealed cards and cached GIFs survive this change. Every other
+// season gets its own namespace — otherwise card 5 of one season would inherit
+// the reveal flag and GIF of card 5 of the other.
+const SEASONS = [
+  { id:'love',    label:'💌 Für dich', theme:'rose', themeColor:'#FF6EC7', legacyKeys:true,
+    cards:CARDS_LOVE,    gifQueries:GIF_QUERIES_LOVE, gifFallback:'cute kawaii pink' },
+  { id:'animals', label:'🦥 Tierwelt', theme:'jade', themeColor:'#3FC79A',
+    cards:CARDS_ANIMALS, gifFallback:'cute animal nature' },
+];
+const SEASON_KEY  = 'puckilander_season';
+let   currentSeason = SEASONS.find(s => s.id === localStorage.getItem(SEASON_KEY)) || SEASONS[0];
+
 // ── Date setup ────────────────────────────────────────────────────────────────
-const now        = new Date();
-const elapsed    = Math.floor((now - START_DATE) / 86400000);
-const activeIdx  = Math.min(Math.max(elapsed, 0), CARDS.length - 1);
+const now     = new Date();
+const elapsed = Math.floor((now - START_DATE) / 86400000);
+// Per-season, because seasons may differ in length even on a shared rhythm.
+function activeIdxFor(season) {
+  return Math.min(Math.max(elapsed, 0), season.cards.length - 1);
+}
 
 const DAYS   = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
 const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 document.getElementById('headerDate').textContent =
   `${DAYS[now.getDay()]}, ${now.getDate()}. ${MONTHS[now.getMonth()]}`;
+const START_LABEL = `✨ Startet am ${START_DATE.getDate()}. ${MONTHS[START_DATE.getMonth()]}`;
 
 // ── Carousel state ────────────────────────────────────────────────────────────
 const stage      = document.getElementById('cardsStage');
 const slotLeft   = document.getElementById('slotLeft');
 const slotCenter = document.getElementById('slotCenter');
 const slotRight  = document.getElementById('slotRight');
-let   viewIdx    = activeIdx;
+let   viewIdx    = activeIdxFor(currentSeason);
 let   navigating = false;
 
-function storeKey(i) { return `puckilander_revealed_${i}`; }
-function isRevealed(i) { return i < activeIdx || !!localStorage.getItem(storeKey(i)); }
+function storeKey(season, i) {
+  return season.legacyKeys ? `puckilander_revealed_${i}`
+                           : `puckilander_${season.id}_revealed_${i}`;
+}
+function gifKey(season, i) {
+  return season.legacyKeys ? `puckilander_gif_${i}`
+                           : `puckilander_${season.id}_gif_${i}`;
+}
+function isRevealed(season, i) {
+  return i < activeIdxFor(season) || !!localStorage.getItem(storeKey(season, i));
+}
 
 // German "in N days" countdown for locked cards
 const NUM = ['','einem','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn',
@@ -482,15 +660,17 @@ function fillSlot(slot, cardIdx) {
   slot.innerHTML = '';
   slot.classList.remove('revealed', 'entering');
 
-  if (cardIdx < 0 || cardIdx >= CARDS.length) {
+  const season = currentSeason;
+  if (cardIdx < 0 || cardIdx >= season.cards.length) {
     slot.style.visibility = 'hidden';
     return;
   }
   slot.style.visibility = '';
 
-  const card     = CARDS[cardIdx];
-  const locked   = cardIdx > activeIdx;
-  const revealed = isRevealed(cardIdx);
+  const activeIdx = activeIdxFor(season);
+  const card      = season.cards[cardIdx];
+  const locked    = cardIdx > activeIdx;
+  const revealed  = isRevealed(season, cardIdx);
   const todayUnrevealed = cardIdx === activeIdx && !revealed;
 
   if (revealed) slot.classList.add('revealed');
@@ -532,7 +712,7 @@ function fillSlot(slot, cardIdx) {
     <img class="back-gif" alt="" loading="lazy">
     <div class="back-title">${card.title}</div>
     <p class="back-msg">${card.msg}</p>`;
-  if (!locked) loadCardGif(cardIdx, back.querySelector('.back-gif'));
+  if (!locked) loadCardGif(season, cardIdx, back.querySelector('.back-gif'));
 
   bobWrap.append(front, back);
   flipper.appendChild(bobWrap);
@@ -543,7 +723,7 @@ function fillSlot(slot, cardIdx) {
   // Tap to reveal: only today's unrevealed card
   if (todayUnrevealed) {
     flipper.addEventListener('click', function() {
-      localStorage.setItem(storeKey(cardIdx), '1');
+      localStorage.setItem(storeKey(season, cardIdx), '1');
       flipper.classList.add('flipped');
       slot.classList.add('revealed');
       const ring = slot.querySelector('.sparkle-ring');
@@ -557,12 +737,12 @@ function renderView() {
   fillSlot(slotCenter, viewIdx);
   fillSlot(slotRight,  viewIdx + 1);
   document.getElementById('dayCounter').textContent =
-    elapsed < 0 ? '✨ Startet am 24. Juni' : `Tag ${viewIdx + 1} von ${CARDS.length}`;
+    elapsed < 0 ? START_LABEL : `Tag ${viewIdx + 1} von ${currentSeason.cards.length}`;
 }
 
 function navigate(dir) {
   const next = viewIdx + dir;
-  if (next < 0 || next >= CARDS.length || navigating) return;
+  if (next < 0 || next >= currentSeason.cards.length || navigating) return;
   navigating = true;
   stage.classList.add('navigating');
 
@@ -583,25 +763,13 @@ function navigate(dir) {
 
 // ── Klipy GIF per card ───────────────────────────────────────────────────────
 const KLIPY_KEY = 'tb7vKsBjDQBtMLMD77FjB8RsakHHLZtDY9k64MaCqMIaqFPilvOfgyGjfVBXBryd';
-const GIF_QUERIES = {
-  '🌸':'pink flowers cute aesthetic','🦋':'butterfly cute pastel','🍋':'lemon drink cute kawaii',
-  '🌈':'rainbow colorful cute','💕':'pink hearts love cute',
-  '🌙':'moon stars dreamy','⭐':'stars sparkle glitter',
-  '🍀':'lucky clover cute','🦄':'unicorn rainbow cute',
-  '🌺':'tropical flower pink cute','💫':'sparkle magic glitter',
-  '🌷':'pink tulip flower cute','🎀':'pink bow ribbon cute',
-  '🌊':'ocean waves soft pastel','✨':'glitter sparkle cute',
-  '🍓':'strawberry cute kawaii','🌻':'sunflower cute happy',
-  '💎':'diamond sparkle bling','🎶':'music notes dancing cute',
-  '🌟':'star shining sparkle','💝':'pink heart love cute',
-  '💖':'glitter heart pink','🧚':'fairy magic wings cute',
-  '🫧':'bubbles soft pastel',
-};
-async function loadCardGif(cardIdx, imgEl) {
-  const cKey = `puckilander_gif_${cardIdx}`;
+
+async function loadCardGif(season, cardIdx, imgEl) {
+  const card = season.cards[cardIdx];
+  const cKey = gifKey(season, cardIdx);
   let url = localStorage.getItem(cKey);
   if (!url) {
-    const query = GIF_QUERIES[CARDS[cardIdx].emoji] || 'cute kawaii pink';
+    const query = card.gif || (season.gifQueries && season.gifQueries[card.emoji]) || season.gifFallback;
     try {
       const res  = await fetch(
         `https://api.klipy.com/v2/search?q=${encodeURIComponent(query)}&key=${KLIPY_KEY}&limit=3`,
@@ -618,14 +786,71 @@ async function loadCardGif(cardIdx, imgEl) {
   if (url && imgEl) { imgEl.onload = () => imgEl.classList.add('loaded'); imgEl.src = url; }
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
-renderView();
+// ── Season picker ────────────────────────────────────────────────────────────
+const picker    = document.getElementById('seasonPicker');
+const seasonBtn = document.getElementById('seasonBtn');
+const seasonMenu = document.getElementById('seasonMenu');
 
-// Entry animation on center slot (only when calendar is active)
-if (elapsed >= 0) {
+function playEntry() {
+  if (elapsed < 0) return;
+  slotCenter.classList.remove('entering');
+  void slotCenter.offsetWidth; // restart the animation
   slotCenter.classList.add('entering');
   setTimeout(() => slotCenter.classList.remove('entering'), 960);
 }
+
+function applySeason(id, { animate = true } = {}) {
+  const season = SEASONS.find(s => s.id === id);
+  if (!season) return;
+  currentSeason = season;
+  localStorage.setItem(SEASON_KEY, season.id);
+
+  document.documentElement.dataset.season = season.theme;
+  document.querySelector('meta[name="theme-color"]').content = season.themeColor;
+  document.getElementById('seasonBtnLabel').textContent = season.label;
+  seasonMenu.querySelectorAll('.season-option').forEach(opt => {
+    opt.setAttribute('aria-selected', String(opt.dataset.id === season.id));
+  });
+
+  viewIdx = activeIdxFor(season);
+  renderView();
+  if (animate) playEntry();
+}
+
+function closeMenu() {
+  picker.classList.remove('open');
+  seasonBtn.setAttribute('aria-expanded', 'false');
+}
+
+SEASONS.forEach(season => {
+  const opt = document.createElement('button');
+  opt.className = 'season-option';
+  opt.type = 'button';
+  opt.setAttribute('role', 'option');
+  opt.dataset.id = season.id;
+  opt.textContent = season.label;
+  opt.addEventListener('click', () => {
+    closeMenu();
+    if (season.id !== currentSeason.id) applySeason(season.id);
+  });
+  seasonMenu.appendChild(opt);
+});
+
+seasonBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  const open = picker.classList.toggle('open');
+  seasonBtn.setAttribute('aria-expanded', String(open));
+});
+document.addEventListener('click', e => {
+  if (!picker.contains(e.target)) closeMenu();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+applySeason(currentSeason.id, { animate: false });
+
+// Entry animation on center slot (only when calendar is active)
+playEntry();
 
 // ── Swipe + tap side slots to navigate ───────────────────────────────────────
 const scene = document.querySelector('.scene');
