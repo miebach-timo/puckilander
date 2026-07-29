@@ -43,6 +43,8 @@ Reveal state is deliberately per-season — switching seasons must never reset c
 
 **3D tilt**: inline `style.transform` on `#tilt-wrap`, mousemove on desktop. **Do not add CSS animations to `#tilt-wrap`** — inline style and CSS animations fight over `transform`. Bob/float animations must live on a child wrapper.
 
+**Crab mascot** (`#crab`): a pixel crab that wanders on its own — walks the bottom edge, climbs onto the card, idles and waves, and is present on the login screen too. The sprite is generated from the `ART` character grid (one char = one pixel), so redraw that grid to change her. A `requestAnimationFrame` state machine drives position; JS owns `transform` on `#crab`, so **all CSS animations must live on child elements** — same constraint as `#tilt-wrap`. She is `pointer-events: none` and must stay that way, otherwise she would swallow card taps and swipes while sitting on a card.
+
 **Season picker**: custom glass dropdown in the header, not a native `<select>` (the iOS picker wheel can't be styled). It needs `touch-action: manipulation` because `body` sets `touch-action: none`. `.scene`'s `padding-top` accounts for the picker row — bump it if the header grows again.
 
 ## Open Tasks (see PROGRESS.md)

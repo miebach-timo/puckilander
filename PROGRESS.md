@@ -45,6 +45,13 @@
 
 ## Erledigt seit letztem Stand
 
+- [x] **Krabbe als Maskottchen**: kleine orange Pixel-Krabbe, die im Puckilander wohnt
+  - Läuft am unteren Rand hin und her, klettert auf die Karte, macht Pausen und winkt
+  - Auch im Login sichtbar
+  - Sprite aus dem `ART`-Zeichenraster erzeugt (ein Zeichen = ein Pixel) — zum Umzeichnen reicht das Raster
+  - `pointer-events: none`, fängt also weder Kartentipp noch Swipe ab
+  - Bei `prefers-reduced-motion` sitzt sie still am Boden
+- [x] Neu hinzugefügte Seasons starten komplett zugedeckt (`autoRevealPast` nur bei Season 1) — vorher waren alle Tierkarten sofort offen, weil ihre Tage schon in der Vergangenheit liegen
 - [x] **Season-System**: Dropdown im Header schaltet zwischen Karten-Sets um
   - `SEASONS`-Registry (`id`, `label`, `theme`, `themeColor`, `cards`); neue Season = ein Eintrag + ein `:root[data-season="…"]`-CSS-Block
   - Reveal- und GIF-Status pro Season getrennt (`puckilander_<season>_revealed_N`); Season 1 behält ihre alten, unpräfixierten Keys, damit nichts zurückgesetzt wird

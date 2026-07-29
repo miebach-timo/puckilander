@@ -408,6 +408,48 @@ html, body {
   text-shadow: var(--counter-shadow); white-space: nowrap;
 }
 
+/* ── Krabbe (Maskottchen) ─────────────────────────
+   Wohnt im Puckilander: läuft am unteren Rand, klettert auf die Karte, ist
+   auch im Login da. pointer-events:none — sie darf Swipe und Kartentipp nie
+   abfangen. JS setzt `transform` auf #crab, deshalb liegen alle CSS-
+   Animationen auf Kindelementen (gleiche Regel wie bei #tilt-wrap). */
+#crab {
+  position: fixed; left: 0; bottom: 0;
+  width: 44px; height: 32px;
+  z-index: 25; pointer-events: none;
+  will-change: transform;
+}
+#crab .crab-floor { /* misst die Safe-Area, damit sie nicht im Rand versinkt */
+  position: absolute; bottom: 0; left: 0; width: 0;
+  height: calc(env(safe-area-inset-bottom, 0px) + 6px);
+}
+.crab-sprite { width: 100%; height: 100%; transform-origin: 50% 100%; }
+.crab-sprite.flip { transform: scaleX(-1); }
+.crab-bob { width: 100%; height: 100%; }
+#crab svg {
+  width: 100%; height: 100%; display: block;
+  shape-rendering: crispEdges;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.28));
+}
+
+/* Beine: zwei Stellungen, die sich beim Laufen abwechseln */
+.crab-legs-b { opacity: 0; }
+#crab.walking .crab-legs-a { animation: crab-legs .3s steps(1,end) infinite; }
+#crab.walking .crab-legs-b { animation: crab-legs .3s steps(1,end) -.15s infinite; }
+@keyframes crab-legs { 0%,49% { opacity: 1 } 50%,100% { opacity: 0 } }
+
+#crab.walking .crab-bob { animation: crab-hop .3s steps(1,end) infinite; }
+@keyframes crab-hop { 0%,49% { transform: translateY(0) } 50%,100% { transform: translateY(-2px) } }
+
+.crab-claw-r { transform-box: fill-box; transform-origin: 50% 100%; }
+#crab.waving .crab-claw-r { animation: crab-wave .44s ease-in-out 3; }
+@keyframes crab-wave { 0%,100% { transform: rotate(0) } 50% { transform: rotate(-28deg) } }
+
+@media (prefers-reduced-motion: reduce) {
+  #crab.walking .crab-legs-a, #crab.walking .crab-legs-b,
+  #crab.walking .crab-bob, #crab.waving .crab-claw-r { animation: none !important; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sky, .cloud, .sparkle-ring,
   .front-icon, .back-emoji, .shimmer-bar::after { animation: none !important; }
@@ -503,6 +545,11 @@ body.locked .day-counter { visibility: hidden; }
       <div class="card-slot" id="slotRight"></div>
     </div>
   </div>
+</div>
+
+<div id="crab" aria-hidden="true">
+  <span class="crab-floor"></span>
+  <div class="crab-sprite"><div class="crab-bob"></div></div>
 </div>
 
 <div class="day-counter" id="dayCounter"></div>
@@ -932,6 +979,137 @@ slotRight.addEventListener('click', () => { if (!dragging) navigate(1); });
 
   document.getElementById('pw-btn').addEventListener('click', checkPw);
   input.addEventListener('keydown', e => { if (e.key === 'Enter') checkPw(); });
+})();
+
+// ── Krabbe ────────────────────────────────────────────────────────────────────
+// Ein kleines Wesen, das im Puckilander wohnt. Es entscheidet selbst, ob es am
+// unteren Rand entlangläuft, auf die Karte klettert oder eine Pause macht.
+(function() {
+  const el = document.getElementById('crab');
+  if (!el) return;
+
+  // Pixel-Sprite: ein Zeichen = ein Pixel. Zum Ändern einfach das Raster
+  // umzeichnen — Breite aller Zeilen muss gleich bleiben.
+  const ART = [
+    'c.........c',
+    'cc.......cc',
+    '.c.hhhhh.c.',
+    '..bEbbbEb..',
+    '.bbbbbbbbb.',
+    '.bbbbbbbbb.',
+    '..ddddddd..',
+  ];
+  const LEGS_A = '.l.l...l.l.';
+  const LEGS_B = 'l..l...l..l';
+  const COL = { E:'#2A1710', h:'#F2996A', b:'#E8814F', d:'#CE6C3E', c:'#D2673B', l:'#B85433' };
+  const COLS = ART[0].length, ROWS = ART.length + 1;
+
+  const px = (x, y, ch) => `<rect x="${x}" y="${y}" width="1" height="1" fill="${COL[ch]}"/>`;
+  const legRow = row => [...row].map((ch, x) => ch === 'l' ? px(x, ART.length, ch) : '').join('');
+
+  const body = [], clawL = [], clawR = [];
+  ART.forEach((row, y) => [...row].forEach((ch, x) => {
+    if (ch === '.') return;
+    if (ch === 'c') (x < COLS / 2 ? clawL : clawR).push(px(x, y, ch));
+    else body.push(px(x, y, ch));
+  }));
+
+  el.querySelector('.crab-bob').innerHTML =
+    `<svg viewBox="0 0 ${COLS} ${ROWS}" xmlns="http://www.w3.org/2000/svg">` +
+    `<g class="crab-legs-a">${legRow(LEGS_A)}</g>` +
+    `<g class="crab-legs-b">${legRow(LEGS_B)}</g>` +
+    `<g class="crab-claw-l">${clawL.join('')}</g>` +
+    `<g class="crab-claw-r">${clawR.join('')}</g>` +
+    `<g class="crab-body">${body.join('')}</g></svg>`;
+
+  const sprite = el.querySelector('.crab-sprite');
+  const probe  = el.querySelector('.crab-floor');
+  const WIDTH  = el.offsetWidth;
+  const WALK   = 34;   // px/s seitwärts
+  const CLIMB  = 105;  // px/s hoch und runter
+
+  const vw = () => window.innerWidth;
+  const vh = () => window.innerHeight;
+  const floorY = () => probe.offsetHeight;
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const spanX = (min, max) => rand(min, Math.max(min, max));
+
+  // Die Karte ist nur ein Ziel, wenn sie wirklich sichtbar ist — im Login und
+  // während des Season-Wechsels gibt es nichts, worauf man klettern könnte.
+  function cardRect() {
+    if (document.body.classList.contains('locked')) return null;
+    const f = document.querySelector('#slotCenter .flip-shell');
+    if (!f) return null;
+    const r = f.getBoundingClientRect();
+    return r.width > 0 && r.top > 40 && r.top < vh() - 40 ? r : null;
+  }
+
+  let x = rand(30, 140), yAbs = 0, dir = 1;
+  let targetX = x, state = 'idle', until = 0, level = 'floor';
+
+  function setState(s, ms) { state = s; until = performance.now() + (ms || 0); }
+  function wave() {
+    el.classList.remove('waving'); void el.offsetWidth; el.classList.add('waving');
+    setTimeout(() => el.classList.remove('waving'), 1400);
+  }
+
+  function nextAction() {
+    const r = cardRect();
+    const roll = Math.random();
+    if (level === 'card' && r) {
+      if (roll < 0.30)      { level = 'floor'; targetX = spanX(8, vw() - WIDTH - 8); state = 'walk'; }
+      else if (roll < 0.62) { setState('idle', rand(1200, 3800)); if (Math.random() < 0.6) wave(); }
+      else                  { targetX = spanX(r.left + 6, r.right - WIDTH - 6); state = 'walk'; }
+    } else {
+      level = 'floor';
+      if (r && roll < 0.22)  { level = 'card'; targetX = spanX(r.left + 6, r.right - WIDTH - 6); state = 'walk'; }
+      else if (roll < 0.48)  { setState('idle', rand(900, 3200)); if (Math.random() < 0.5) wave(); }
+      else                   { targetX = spanX(8, vw() - WIDTH - 8); state = 'walk'; }
+    }
+  }
+
+  let last = 0;
+  function frame(t) {
+    const dt = Math.min((t - last) / 1000, 0.05); // nach Tab-Wechsel nicht springen
+    last = t;
+
+    const r = cardRect();
+    if (level === 'card' && !r) { level = 'floor'; setState('idle', 400); }
+    const targetY = level === 'card' && r ? vh() - r.top : floorY();
+
+    const dy = targetY - yAbs;
+    yAbs += Math.sign(dy) * Math.min(Math.abs(dy), CLIMB * dt);
+
+    if (state === 'walk') {
+      const dx = targetX - x;
+      if (Math.abs(dx) > 1) {
+        dir = Math.sign(dx);
+        x += dir * Math.min(Math.abs(dx), WALK * dt);
+      } else if (Math.abs(dy) < 1) {
+        setState('idle', rand(500, 1900));
+      }
+    } else if (t > until) {
+      nextAction();
+    }
+
+    x = Math.max(2, Math.min(x, vw() - WIDTH - 2));
+    el.classList.toggle('walking', state === 'walk' && Math.abs(targetX - x) > 1);
+    sprite.classList.toggle('flip', dir < 0);
+    el.style.transform = `translate3d(${x.toFixed(1)}px, ${(-yAbs).toFixed(1)}px, 0)`;
+
+    raf = requestAnimationFrame(frame);
+  }
+
+  let raf = 0;
+  function start() { if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } }
+  function stop()  { cancelAnimationFrame(raf); raf = 0; }
+
+  yAbs = floorY();
+  el.style.transform = `translate3d(${x}px, ${-yAbs}px, 0)`;
+
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; // sitzt einfach da
+  document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
+  start();
 })();
 
 // ── Floating sparkles ─────────────────────────────────────────────────────────
