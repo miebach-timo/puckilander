@@ -49,7 +49,13 @@ Reveal state is per-season — switching seasons must never reset cards. Only th
 
 **3D tilt**: inline `style.transform` on `#tilt-wrap`, mousemove on desktop. **Do not add CSS animations to `#tilt-wrap`** — inline style and CSS animations fight over `transform`. Bob/float animations must live on a child wrapper.
 
-**Crab mascot** (`#crab`): a pixel crab that wanders on its own — walks the bottom edge, climbs onto the card, idles and waves, and is present on the login screen too. The sprite is generated from the `ART` character grid (one char = one pixel), so redraw that grid to change her. A `requestAnimationFrame` state machine drives position; JS owns `transform` on `#crab`, so **all CSS animations must live on child elements** — same constraint as `#tilt-wrap`. She is `pointer-events: none` and must stay that way, otherwise she would swallow card taps and swipes while sitting on a card.
+**Crab mascots** (`#crab` orange, `#crab2` blue with a party hat): two pixel crabs that wander on their own — walk the bottom edge, climb onto the card, idle and wave, and are present on the login screen too. `makeCrab(el, opts)` is a factory: each crab keeps its own position and state in a closure, so they never move in lockstep. `opts` carries the art grid, palette, `walk`/`climb` speed, idle range and `cardChance` — that is where you tune one crab's personality. **One** `requestAnimationFrame` loop steps them all.
+
+Sprites come from `pixelSprite`/`pixelRects` and a character grid (one char = one pixel); redraw the grid to change a crab. Element width/height are derived from the grid, not hardcoded — the party hat simply makes `#crab2` taller. Both crabs are anchored bottom-left and positioned with a negative `translate3d`.
+
+JS owns `transform` on `.crab`, so **all CSS animations must live on child elements** — same constraint as `#tilt-wrap`. Both are `pointer-events: none` and must stay that way, otherwise they would swallow card taps and swipes while sitting on a card.
+
+**Flora** (`#flora`): scattered pixel grass tufts and flowers along the bottom, from the same `pixelSprite` helper. Positions are a fixed `LAYOUT` table (percent + scale), not random, so the arrangement stays put across reloads and can be tuned by hand — keep visible gaps between clumps and leave the middle sparse, since the day counter sits there. Plants are scenery, so unlike the crabs they follow the season: their rects carry **classes** (`p-mid`, `p-bloom`, …) resolved against `--plant-*` / `--bloom` tokens, which is why `pixelSprite` takes a `'class'` mode. On jade the tokens must go noticeably darker or the plants vanish into the green background. `z-index: 18` keeps them under the day counter (20) and the crabs (25).
 
 **Header popovers**: the season dropdown and the 🎲 reset confirmation share `bindPopper()` — only one open at a time, closing on outside click and Escape. Add a third the same way rather than wiring its own handlers.
 

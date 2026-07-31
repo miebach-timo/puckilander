@@ -45,6 +45,16 @@
 
 ## Erledigt seit letztem Stand
 
+- [x] **Zweite Krabbe**: blau, mit Partyhut (Bommel + Streifen), wohnt gleichberechtigt im Puckilander
+  - Krabben-Code zur Fabrik `makeCrab()` umgebaut — jede hält ihren Zustand im eigenen Closure, sonst liefen beide im Gleichschritt
+  - Eigener Rhythmus über `opts` (Tempo, Pausen, Kletterneigung); eine gemeinsame rAF-Schleife für beide
+  - Elementgröße kommt aus dem Pixelraster, nicht aus dem CSS — der Hut macht die blaue schlicht höher
+- [x] **Pflanzen am unteren Rand**: verstreute Grasbüschel und Blümchen als Pixelgrafik
+  - Feste Positionstabelle statt Zufall, mit Lücken zwischen den Gruppen; Mitte licht, damit die Tagesanzeige frei bleibt
+  - Sanftes Wiegen, jede Pflanze mit eigenem Takt
+  - Farben folgen der Season (`--plant-*`, `--bloom`) über CSS-Klassen an den Rechtecken; auf Jade deutlich dunkler, sonst verschwinden sie im grünen Hintergrund
+  - Die Krabben behalten Orange und Blau — Maskottchenfarben sollen sich beim Season-Wechsel gerade *nicht* ändern
+
 - [x] **Adventskalender-Modus**: kein festes Startdatum mehr im Code
   - Jede Season merkt sich ihren Start (`puckilander_<id>_start`) und schaltet ab da täglich eine Karte frei
   - Tagesrechnung von Mitternacht zu Mitternacht und **gerundet**, damit eine Zeitumstellung (23- bzw. 25-Stunden-Tag) keinen Tag verschiebt

@@ -45,6 +45,12 @@
   --card-shadow: 0 20px 52px rgba(155,55,180,.28), 0 4px 14px rgba(120,40,160,.14), inset 0 1.5px 0 rgba(255,255,255,1);
   --icon-glow: drop-shadow(0 0 16px rgba(200,100,220,.55));
   --counter-shadow: 0 1px 4px rgba(120,40,160,.5);
+
+  /* Pflanzen: mittleres Grün hebt sich klar vom Rosa/Violett ab */
+  --plant-dark:  #2F7048;
+  --plant-mid:   #4E9E6A;
+  --plant-light: #7DC48F;
+  --bloom:       #FFE070;
 }
 
 /* Season 2 — jade / sage. Same geometry and alphas as above, green hues.
@@ -81,6 +87,13 @@
   --card-shadow: 0 20px 52px rgba(20,110,85,.28), 0 4px 14px rgba(15,90,70,.14), inset 0 1.5px 0 rgba(255,255,255,1);
   --icon-glow: drop-shadow(0 0 16px rgba(70,195,155,.55));
   --counter-shadow: 0 1px 4px rgba(15,90,70,.5);
+
+  /* Der Hintergrund ist hier selbst grün — die Pflanzen müssen deutlich
+     dunkler sein, sonst verschwinden sie im Verlauf. */
+  --plant-dark:  #0C4232;
+  --plant-mid:   #175E44;
+  --plant-light: #2C8A62;
+  --bloom:       #FFE9A8;
 }
 
 *, *::before, *::after {
@@ -420,25 +433,25 @@ html, body {
   text-shadow: var(--counter-shadow); white-space: nowrap;
 }
 
-/* ── Krabbe (Maskottchen) ─────────────────────────
-   Wohnt im Puckilander: läuft am unteren Rand, klettert auf die Karte, ist
-   auch im Login da. pointer-events:none — sie darf Swipe und Kartentipp nie
-   abfangen. JS setzt `transform` auf #crab, deshalb liegen alle CSS-
-   Animationen auf Kindelementen (gleiche Regel wie bei #tilt-wrap). */
-#crab {
+/* ── Krabben (Maskottchen) ────────────────────────
+   Zwei Bewohner: laufen am unteren Rand, klettern auf die Karte, sind auch im
+   Login da. pointer-events:none — sie dürfen Swipe und Kartentipp nie
+   abfangen. JS setzt `transform` auf .crab, deshalb liegen alle CSS-
+   Animationen auf Kindelementen (gleiche Regel wie bei #tilt-wrap).
+   Breite/Höhe kommen aus dem Pixelraster und werden von JS gesetzt. */
+.crab {
   position: fixed; left: 0; bottom: 0;
-  width: 44px; height: 32px;
   z-index: 25; pointer-events: none;
   will-change: transform;
 }
-#crab .crab-floor { /* misst die Safe-Area, damit sie nicht im Rand versinkt */
-  position: absolute; bottom: 0; left: 0; width: 0;
+#floorProbe { /* misst die Safe-Area, damit sie nicht im Rand versinken */
+  position: fixed; bottom: 0; left: 0; width: 0; pointer-events: none;
   height: calc(env(safe-area-inset-bottom, 0px) + 6px);
 }
 .crab-sprite { width: 100%; height: 100%; transform-origin: 50% 100%; }
 .crab-sprite.flip { transform: scaleX(-1); }
 .crab-bob { width: 100%; height: 100%; }
-#crab svg {
+.crab svg {
   width: 100%; height: 100%; display: block;
   shape-rendering: crispEdges;
   filter: drop-shadow(0 2px 3px rgba(0,0,0,.28));
@@ -446,20 +459,47 @@ html, body {
 
 /* Beine: zwei Stellungen, die sich beim Laufen abwechseln */
 .crab-legs-b { opacity: 0; }
-#crab.walking .crab-legs-a { animation: crab-legs .3s steps(1,end) infinite; }
-#crab.walking .crab-legs-b { animation: crab-legs .3s steps(1,end) -.15s infinite; }
+.crab.walking .crab-legs-a { animation: crab-legs .3s steps(1,end) infinite; }
+.crab.walking .crab-legs-b { animation: crab-legs .3s steps(1,end) -.15s infinite; }
 @keyframes crab-legs { 0%,49% { opacity: 1 } 50%,100% { opacity: 0 } }
 
-#crab.walking .crab-bob { animation: crab-hop .3s steps(1,end) infinite; }
+.crab.walking .crab-bob { animation: crab-hop .3s steps(1,end) infinite; }
 @keyframes crab-hop { 0%,49% { transform: translateY(0) } 50%,100% { transform: translateY(-2px) } }
 
 .crab-claw-r { transform-box: fill-box; transform-origin: 50% 100%; }
-#crab.waving .crab-claw-r { animation: crab-wave .44s ease-in-out 3; }
+.crab.waving .crab-claw-r { animation: crab-wave .44s ease-in-out 3; }
 @keyframes crab-wave { 0%,100% { transform: rotate(0) } 50% { transform: rotate(-28deg) } }
 
+/* ── Pflanzen am unteren Rand ─────────────────────
+   Kulisse, kein Maskottchen: die Farben folgen der Season (Klassen statt fester
+   fill-Werte), damit ein Season-Wechsel sie ohne Neuaufbau umfärbt.
+   z-index 18: unter der Tagesanzeige (20) und den Krabben (25), über der
+   Karten-Szene (10) — die "Tag N von 31"-Pille bleibt lesbar. */
+#flora {
+  position: fixed; left: 0; right: 0;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 4px);
+  height: 30px; z-index: 18; pointer-events: none;
+  overflow: hidden; /* Randpflanzen dürfen den Viewport nicht verbreitern */
+}
+.plant {
+  position: absolute; bottom: 0;
+  transform-origin: 50% 100%;
+  animation: flora-sway 5.5s ease-in-out infinite alternate;
+}
+.plant svg { display: block; width: 100%; height: 100%; shape-rendering: crispEdges; }
+.p-dark  { fill: var(--plant-dark); }
+.p-mid   { fill: var(--plant-mid); }
+.p-light { fill: var(--plant-light); }
+.p-bloom { fill: var(--bloom); }
+@keyframes flora-sway {
+  from { transform: rotate(-2.5deg); }
+  to   { transform: rotate(2.5deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  #crab.walking .crab-legs-a, #crab.walking .crab-legs-b,
-  #crab.walking .crab-bob, #crab.waving .crab-claw-r { animation: none !important; }
+  .crab.walking .crab-legs-a, .crab.walking .crab-legs-b,
+  .crab.walking .crab-bob, .crab.waving .crab-claw-r,
+  .plant { animation: none !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -570,8 +610,13 @@ body.locked .day-counter { visibility: hidden; }
   </div>
 </div>
 
-<div id="crab" aria-hidden="true">
-  <span class="crab-floor"></span>
+<span id="floorProbe" aria-hidden="true"></span>
+<div id="flora" aria-hidden="true"></div>
+
+<div id="crab" class="crab" aria-hidden="true">
+  <div class="crab-sprite"><div class="crab-bob"></div></div>
+</div>
+<div id="crab2" class="crab" aria-hidden="true">
   <div class="crab-sprite"><div class="crab-bob"></div></div>
 </div>
 
@@ -1058,53 +1103,32 @@ slotRight.addEventListener('click', () => { if (!dragging) navigate(1); });
   input.addEventListener('keydown', e => { if (e.key === 'Enter') checkPw(); });
 })();
 
-// ── Krabbe ────────────────────────────────────────────────────────────────────
-// Ein kleines Wesen, das im Puckilander wohnt. Es entscheidet selbst, ob es am
+// ── Pixel-Sprites ─────────────────────────────────────────────────────────────
+// Ein Zeichen = ein Pixel. Zum Umzeichnen reicht das Raster; alle Zeilen einer
+// Grafik müssen gleich lang sein. `mode:'class'` gibt statt fester fill-Werte
+// CSS-Klassen aus — so folgen die Pflanzen der Season, ohne neu gebaut zu werden.
+function pixelRects(art, palette, mode) {
+  const out = [];
+  art.forEach((row, y) => [...row].forEach((ch, x) => {
+    if (ch === '.') return;
+    const paint = mode === 'class' ? `class="${palette[ch]}"` : `fill="${palette[ch]}"`;
+    out.push(`<rect x="${x}" y="${y}" width="1" height="1" ${paint}/>`);
+  }));
+  return out.join('');
+}
+function pixelSvg(art, palette, mode) {
+  return `<svg viewBox="0 0 ${art[0].length} ${art.length}" xmlns="http://www.w3.org/2000/svg">`
+       + pixelRects(art, palette, mode) + '</svg>';
+}
+
+// ── Krabben ───────────────────────────────────────────────────────────────────
+// Zwei Wesen, die im Puckilander wohnen. Jedes entscheidet selbst, ob es am
 // unteren Rand entlangläuft, auf die Karte klettert oder eine Pause macht.
 (function() {
-  const el = document.getElementById('crab');
-  if (!el) return;
+  const probe = document.getElementById('floorProbe');
+  if (!probe) return;
 
-  // Pixel-Sprite: ein Zeichen = ein Pixel. Zum Ändern einfach das Raster
-  // umzeichnen — Breite aller Zeilen muss gleich bleiben.
-  const ART = [
-    'c.........c',
-    'cc.......cc',
-    '.c.hhhhh.c.',
-    '..bEbbbEb..',
-    '.bbbbbbbbb.',
-    '.bbbbbbbbb.',
-    '..ddddddd..',
-  ];
-  const LEGS_A = '.l.l...l.l.';
-  const LEGS_B = 'l..l...l..l';
-  const COL = { E:'#2A1710', h:'#F2996A', b:'#E8814F', d:'#CE6C3E', c:'#D2673B', l:'#B85433' };
-  const COLS = ART[0].length, ROWS = ART.length + 1;
-
-  const px = (x, y, ch) => `<rect x="${x}" y="${y}" width="1" height="1" fill="${COL[ch]}"/>`;
-  const legRow = row => [...row].map((ch, x) => ch === 'l' ? px(x, ART.length, ch) : '').join('');
-
-  const body = [], clawL = [], clawR = [];
-  ART.forEach((row, y) => [...row].forEach((ch, x) => {
-    if (ch === '.') return;
-    if (ch === 'c') (x < COLS / 2 ? clawL : clawR).push(px(x, y, ch));
-    else body.push(px(x, y, ch));
-  }));
-
-  el.querySelector('.crab-bob').innerHTML =
-    `<svg viewBox="0 0 ${COLS} ${ROWS}" xmlns="http://www.w3.org/2000/svg">` +
-    `<g class="crab-legs-a">${legRow(LEGS_A)}</g>` +
-    `<g class="crab-legs-b">${legRow(LEGS_B)}</g>` +
-    `<g class="crab-claw-l">${clawL.join('')}</g>` +
-    `<g class="crab-claw-r">${clawR.join('')}</g>` +
-    `<g class="crab-body">${body.join('')}</g></svg>`;
-
-  const sprite = el.querySelector('.crab-sprite');
-  const probe  = el.querySelector('.crab-floor');
-  const WIDTH  = el.offsetWidth;
-  const WALK   = 34;   // px/s seitwärts
-  const CLIMB  = 105;  // px/s hoch und runter
-
+  const SCALE = 4;
   const vw = () => window.innerWidth;
   const vh = () => window.innerHeight;
   const floorY = () => probe.offsetHeight;
@@ -1121,72 +1145,207 @@ slotRight.addEventListener('click', () => { if (!dragging) navigate(1); });
     return r.width > 0 && r.top > 40 && r.top < vh() - 40 ? r : null;
   }
 
-  let x = rand(30, 140), yAbs = 0, dir = 1;
-  let targetX = x, state = 'idle', until = 0, level = 'floor';
+  // Jede Krabbe hält ihren Zustand im eigenen Closure — sonst liefen beide
+  // deckungsgleich.
+  function makeCrab(el, o) {
+    const COLS = o.art[0].length, ROWS = o.art.length + 1;
+    const legRow = row => [...row].map((ch, x) =>
+      ch === 'l' ? `<rect x="${x}" y="${o.art.length}" width="1" height="1" fill="${o.colors.l}"/>` : '').join('');
 
-  function setState(s, ms) { state = s; until = performance.now() + (ms || 0); }
-  function wave() {
-    el.classList.remove('waving'); void el.offsetWidth; el.classList.add('waving');
-    setTimeout(() => el.classList.remove('waving'), 1400);
-  }
+    // Scheren getrennt, damit beim Winken nur eine rotiert
+    const bodyArt = o.art.map(r => [...r].map(ch => ch === 'c' ? '.' : ch).join(''));
+    const clawArt = side => o.art.map(r => [...r].map((ch, x) =>
+      ch === 'c' && (x < COLS / 2) === (side === 'l') ? ch : '.').join(''));
 
-  function nextAction() {
-    const r = cardRect();
-    const roll = Math.random();
-    if (level === 'card' && r) {
-      if (roll < 0.30)      { level = 'floor'; targetX = spanX(8, vw() - WIDTH - 8); state = 'walk'; }
-      else if (roll < 0.62) { setState('idle', rand(1200, 3800)); if (Math.random() < 0.6) wave(); }
-      else                  { targetX = spanX(r.left + 6, r.right - WIDTH - 6); state = 'walk'; }
-    } else {
-      level = 'floor';
-      if (r && roll < 0.22)  { level = 'card'; targetX = spanX(r.left + 6, r.right - WIDTH - 6); state = 'walk'; }
-      else if (roll < 0.48)  { setState('idle', rand(900, 3200)); if (Math.random() < 0.5) wave(); }
-      else                   { targetX = spanX(8, vw() - WIDTH - 8); state = 'walk'; }
+    el.style.width  = COLS * SCALE + 'px';
+    el.style.height = ROWS * SCALE + 'px';
+    el.querySelector('.crab-bob').innerHTML =
+      `<svg viewBox="0 0 ${COLS} ${ROWS}" xmlns="http://www.w3.org/2000/svg">` +
+      `<g class="crab-legs-a">${legRow(o.legsA)}</g>` +
+      `<g class="crab-legs-b">${legRow(o.legsB)}</g>` +
+      `<g class="crab-claw-l">${pixelRects(clawArt('l'), o.colors)}</g>` +
+      `<g class="crab-claw-r">${pixelRects(clawArt('r'), o.colors)}</g>` +
+      `<g class="crab-body">${pixelRects(bodyArt, o.colors)}</g></svg>`;
+
+    const sprite = el.querySelector('.crab-sprite');
+    const WIDTH  = COLS * SCALE;
+
+    let x = rand(o.startX[0], o.startX[1]), yAbs = floorY(), dir = 1;
+    let targetX = x, state = 'idle', until = 0, level = 'floor';
+
+    const setState = (s, ms) => { state = s; until = performance.now() + (ms || 0); };
+    function wave() {
+      el.classList.remove('waving'); void el.offsetWidth; el.classList.add('waving');
+      setTimeout(() => el.classList.remove('waving'), 1400);
     }
+
+    function nextAction() {
+      const r = cardRect();
+      const roll = Math.random();
+      if (level === 'card' && r) {
+        if (roll < 0.30)      { level = 'floor'; targetX = spanX(8, vw() - WIDTH - 8); state = 'walk'; }
+        else if (roll < 0.62) { setState('idle', rand(o.idle[0] * 1.3, o.idle[1] * 1.2)); if (Math.random() < 0.6) wave(); }
+        else                  { targetX = spanX(r.left + 6, r.right - WIDTH - 6); state = 'walk'; }
+      } else {
+        level = 'floor';
+        if (r && roll < o.cardChance) { level = 'card'; targetX = spanX(r.left + 6, r.right - WIDTH - 6); state = 'walk'; }
+        else if (roll < 0.48)         { setState('idle', rand(o.idle[0], o.idle[1])); if (Math.random() < 0.5) wave(); }
+        else                          { targetX = spanX(8, vw() - WIDTH - 8); state = 'walk'; }
+      }
+    }
+
+    el.style.transform = `translate3d(${x}px, ${-yAbs}px, 0)`;
+
+    return function step(dt, t) {
+      const r = cardRect();
+      if (level === 'card' && !r) { level = 'floor'; setState('idle', 400); }
+      const targetY = level === 'card' && r ? vh() - r.top : floorY();
+
+      const dy = targetY - yAbs;
+      yAbs += Math.sign(dy) * Math.min(Math.abs(dy), o.climb * dt);
+
+      if (state === 'walk') {
+        const dx = targetX - x;
+        if (Math.abs(dx) > 1) {
+          dir = Math.sign(dx);
+          x += dir * Math.min(Math.abs(dx), o.walk * dt);
+        } else if (Math.abs(dy) < 1) {
+          setState('idle', rand(500, 1900));
+        }
+      } else if (t > until) {
+        nextAction();
+      }
+
+      x = Math.max(2, Math.min(x, vw() - WIDTH - 2));
+      el.classList.toggle('walking', state === 'walk' && Math.abs(targetX - x) > 1);
+      sprite.classList.toggle('flip', dir < 0);
+      el.style.transform = `translate3d(${x.toFixed(1)}px, ${(-yAbs).toFixed(1)}px, 0)`;
+    };
   }
 
-  let last = 0;
+  const LEGS_A = '.l.l...l.l.';
+  const LEGS_B = 'l..l...l..l';
+
+  // Orange, ohne Hut
+  const ART_ORANGE = [
+    'c.........c',
+    'cc.......cc',
+    '.c.hhhhh.c.',
+    '..bEbbbEb..',
+    '.bbbbbbbbb.',
+    '.bbbbbbbbb.',
+    '..ddddddd..',
+  ];
+  // Blau, mit Partyhut zwischen den erhobenen Scheren
+  const ART_PARTY = [
+    '.....o.....',
+    '....ppp....',
+    '...pqqqp...',
+    '..ppppppp..',
+    'c.........c',
+    'cc.......cc',
+    '.c.hhhhh.c.',
+    '..bEbbbEb..',
+    '.bbbbbbbbb.',
+    '.bbbbbbbbb.',
+    '..ddddddd..',
+  ];
+
+  const crabs = [];
+  const orange = document.getElementById('crab');
+  const party  = document.getElementById('crab2');
+  if (orange) crabs.push(makeCrab(orange, {
+    art: ART_ORANGE, legsA: LEGS_A, legsB: LEGS_B,
+    colors: { E:'#2A1710', h:'#F2996A', b:'#E8814F', d:'#CE6C3E', c:'#D2673B', l:'#B85433' },
+    walk: 34, climb: 105, idle: [900, 3200], cardChance: 0.22, startX: [30, 140],
+  }));
+  if (party) crabs.push(makeCrab(party, {
+    art: ART_PARTY, legsA: LEGS_A, legsB: LEGS_B,
+    colors: { E:'#10202E', h:'#8CC9F6', b:'#5AA8E8', d:'#3E86C4', c:'#4A92D6', l:'#3A79B0',
+              p:'#F2588C', q:'#FFD466', o:'#FFF3C4' },
+    walk: 27, climb: 88, idle: [1400, 4200], cardChance: 0.19, startX: [190, 300],
+  }));
+  if (!crabs.length) return;
+
+  // Eine Schleife für beide — billiger als zwei, und nur ein visibilitychange.
+  let raf = 0, last = 0;
   function frame(t) {
     const dt = Math.min((t - last) / 1000, 0.05); // nach Tab-Wechsel nicht springen
     last = t;
-
-    const r = cardRect();
-    if (level === 'card' && !r) { level = 'floor'; setState('idle', 400); }
-    const targetY = level === 'card' && r ? vh() - r.top : floorY();
-
-    const dy = targetY - yAbs;
-    yAbs += Math.sign(dy) * Math.min(Math.abs(dy), CLIMB * dt);
-
-    if (state === 'walk') {
-      const dx = targetX - x;
-      if (Math.abs(dx) > 1) {
-        dir = Math.sign(dx);
-        x += dir * Math.min(Math.abs(dx), WALK * dt);
-      } else if (Math.abs(dy) < 1) {
-        setState('idle', rand(500, 1900));
-      }
-    } else if (t > until) {
-      nextAction();
-    }
-
-    x = Math.max(2, Math.min(x, vw() - WIDTH - 2));
-    el.classList.toggle('walking', state === 'walk' && Math.abs(targetX - x) > 1);
-    sprite.classList.toggle('flip', dir < 0);
-    el.style.transform = `translate3d(${x.toFixed(1)}px, ${(-yAbs).toFixed(1)}px, 0)`;
-
+    for (const step of crabs) step(dt, t);
     raf = requestAnimationFrame(frame);
   }
-
-  let raf = 0;
   function start() { if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } }
   function stop()  { cancelAnimationFrame(raf); raf = 0; }
 
-  yAbs = floorY();
-  el.style.transform = `translate3d(${x}px, ${-yAbs}px, 0)`;
-
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; // sitzt einfach da
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; // sitzen einfach da
   document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
   start();
+})();
+
+// ── Pflanzen ──────────────────────────────────────────────────────────────────
+// Verstreute Büschel und Blümchen, durch die die Krabben hindurchlaufen.
+(function() {
+  const cont = document.getElementById('flora');
+  if (!cont) return;
+
+  const PAL = { d:'p-dark', m:'p-mid', l:'p-light', f:'p-bloom' };
+  const PLANTS = {
+    // kleines Grasbüschel
+    tuft: [
+      '.l...m...',
+      'dl.d.mm.d',
+      'dlmdmmmdd',
+      'ddmdmmmdd',
+    ],
+    // höherer Halm-Busch
+    reed: [
+      '..l...l..',
+      '.ml..lm..',
+      '.ml.dlm.d',
+      'dmldmlmld',
+      'dmldmlmld',
+      'ddmdmmmdd',
+    ],
+    // Blümchen mit Stiel
+    bloom: [
+      '...ff....',
+      '..ffff...',
+      '...ff....',
+      '...m.....',
+      '.l.m.l...',
+      'dlmmdml.d',
+      'ddmmdmmdd',
+    ],
+  };
+
+  // Feste Positionen statt Zufall: bleibt über Reloads gleich und wirkt
+  // arrangiert. Die Mitte ist bewusst dünn besetzt — dort sitzt die Tagesanzeige.
+  const LAYOUT = [
+    ['tuft',   2, 0.90], ['reed',   9, 0.65],   // kleine Gruppe links
+    ['bloom', 20, 0.80],
+    ['reed',  32, 0.90],
+    ['tuft',  45, 0.70],                        // Mitte bewusst klein und licht
+    ['bloom', 57, 0.75],
+    ['reed',  69, 0.85], ['tuft',  76, 0.65],   // kleine Gruppe rechts
+    ['bloom', 85, 0.80],
+    ['tuft',  92, 0.90],
+  ];
+
+  const SCALE = 3;
+  LAYOUT.forEach(([kind, left, scale], i) => {
+    const art = PLANTS[kind];
+    const el = document.createElement('div');
+    el.className = 'plant';
+    el.style.left   = left + '%';
+    el.style.width  = art[0].length * SCALE * scale + 'px';
+    el.style.height = art.length    * SCALE * scale + 'px';
+    // eigener Takt, damit sie nicht im Gleichschritt wackeln
+    el.style.animationDelay    = (-(i * 0.73) % 5.5).toFixed(2) + 's';
+    el.style.animationDuration = (4.6 + (i % 4) * 0.6).toFixed(1) + 's';
+    el.innerHTML = pixelSvg(art, PAL, 'class');
+    cont.appendChild(el);
+  });
 })();
 
 // ── Floating sparkles ─────────────────────────────────────────────────────────
